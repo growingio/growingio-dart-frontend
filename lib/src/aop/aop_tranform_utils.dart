@@ -20,14 +20,14 @@ class AopUtils {
   static String kAopAnnotationIsStatic = 'isStatic';
 
   static const String GROWINGIO_INJECT_IMPL =
-      "package:growingio_sdk_flutter/growingio_inject_impl.dart";
+      r'^package:[a-zA-Z_]*/growingio_inject_impl.dart$';
   static const String GROWINGIO_INJECT_ANNOTATION =
-      "package:growingio_sdk_flutter/growingio_inject_annotation.dart";
+      r'^package:[a-zA-Z_]*/growingio_inject_annotation.dart';
   static Set<Procedure> manipulatedProcedureSet = {};
 
   static bool getAopModeByNameAndImportUri(String name, String importUri) {
     if (name == kAopAnnotationClassInject &&
-        importUri == GROWINGIO_INJECT_ANNOTATION) {
+        RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION).hasMatch(importUri)) {
       return true;
     }
     return false;

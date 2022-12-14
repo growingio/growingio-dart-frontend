@@ -44,7 +44,8 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
     // all inject in one library:growingio_inject_impl.dart
     Library? gioLibrary;
     for (Library library in libraries) {
-      if (library.importUri.toString() == AopUtils.GROWINGIO_INJECT_IMPL) {
+      if (RegExp(AopUtils.GROWINGIO_INJECT_IMPL)
+          .hasMatch(library.importUri.toString())) {
         gioLibrary = library;
       }
     }
