@@ -46,20 +46,18 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
     for (Library library in libraries) {
       if (RegExp(AopUtils.GROWINGIO_INJECT_IMPL)
           .hasMatch(library.importUri.toString())) {
-        gioLibrary = library;
-      }
-    }
-    if (gioLibrary == null) return;
-
-    final List<Class> classes = gioLibrary.classes;
-    for (Class cls in classes) {
-      for (Member member in cls.members) {
-        if (!(member is Member)) {
-          continue;
-        }
-        final GrowingioAopInfo? aopItemInfo = _processAopMember(member);
-        if (aopItemInfo != null) {
-          injectInfoList.add(aopItemInfo);
+        Library gioLibrary = library;
+        final List<Class> classes = gioLibrary.classes;
+        for (Class cls in classes) {
+          for (Member member in cls.members) {
+            if (!(member is Member)) {
+              continue;
+            }
+            final GrowingioAopInfo? aopItemInfo = _processAopMember(member);
+            if (aopItemInfo != null) {
+              injectInfoList.add(aopItemInfo);
+            }
+          }
         }
       }
     }
