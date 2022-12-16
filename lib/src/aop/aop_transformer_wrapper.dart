@@ -20,7 +20,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
 
   @override
   void transform(Component component) {
-    //tracker.transform(component, component.libraries, null);
+    tracker.transform(component, component.libraries, null);
     prepareAopItemInfo(component);
 
     // transform

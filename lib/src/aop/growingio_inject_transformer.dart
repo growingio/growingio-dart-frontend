@@ -95,7 +95,8 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
       return;
     }
 
-    print("GrowingIO Inject: ${matchedInfo.importUri}/${matchedInfo.clsName} ${matchedInfo.methodName}");
+    print(
+        "GrowingIO Inject: ${matchedInfo.importUri}/${matchedInfo.clsName} ${matchedInfo.methodName}");
     _aopItemInfoList.remove(matchedInfo);
 
     // deal with method
@@ -144,17 +145,22 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
 
       Arguments injectArgs =
           AopUtils.argumentsFromFunctionNode(procedure.function);
-      if (injectArgs.positional.length > arguments.positional.length) {
+      if (injectArgs.positional.isEmpty) return Block(<Statement>[]);
+
+      int addition = 1;
+      injectArgs.positional[0] = ThisExpression();
+      if (injectArgs.positional.length > arguments.positional.length + 1) {
         print(
             "Error: Inject Method Params length more than Target Method Params");
         return Block(<Statement>[]);
       }
 
       // map target method params into inject method.
-      for (int i = 0; i < injectArgs.positional.length; i++) {
-        injectArgs.positional[i] = arguments.positional[i];
+      for (int i = addition; i < injectArgs.positional.length; i++) {
+        injectArgs.positional[i] = arguments.positional[i - addition];
       }
-      //print("GrowingIO inject: args " + injectArgs.toString());
+
+      print("GrowingIO inject: args " + injectArgs.toString());
 
       if (procedure.isStatic) {
         callExpression =

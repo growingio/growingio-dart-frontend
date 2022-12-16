@@ -389,12 +389,12 @@ class WidgetCreatorTracker {
             }
           }
 
-          if (importUri.path.contains('growingio_autotracker.dart')) {
+          if (importUri.path.contains('growingio_local_element.dart')) {
             for (Class class_ in library.classes) {
-              if (class_.name == '_GIOHasCreationLocation') {
+              if (class_.name == '_CustomHasCreationLocation') {
                 _hasCreationLocationClass = class_;
                 foundHasCreationLocationClass = true;
-              } else if (class_.name == '_GIOLocation') {
+              } else if (class_.name == '_CustomLocation') {
                 _locationClass = class_;
                 foundLocationClass = true;
               }
