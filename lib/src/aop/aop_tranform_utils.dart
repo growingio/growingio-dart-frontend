@@ -12,12 +12,16 @@ import 'aop_iteminfo.dart';
 class AopUtils {
   AopUtils();
 
+  static String kAopAnnotationClassPointCut = 'PointCut';
+  static String kAopAnnotationClassPointCutResult = 'result';
   static String kAopAnnotationClassInject = 'Inject';
   static String kAopAnnotationImportUri = 'importUri';
   static String kAopAnnotationClsName = 'clsName';
   static String kAopAnnotationMethodName = 'methodName';
   static String kAopAnnotationIsRegex = 'isRegex';
   static String kAopAnnotationIsStatic = 'isStatic';
+  static String kAopAnnotationIsAfter = 'isAfter';
+  static String kAopAnnotationMethodPrefix = 'gio_stub_';
 
   static const String GROWINGIO_INJECT_IMPL =
       r'^package:[a-zA-Z_]*/growingio_inject_impl.dart$';
@@ -25,12 +29,44 @@ class AopUtils {
       r'^package:[a-zA-Z_]*/growingio_inject_annotation.dart';
   static Set<Procedure> manipulatedProcedureSet = {};
 
+  static Class? pointCutProceedClass;
+
   static bool getAopModeByNameAndImportUri(String name, String importUri) {
     if (name == kAopAnnotationClassInject &&
         RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION).hasMatch(importUri)) {
       return true;
     }
     return false;
+  }
+
+  static ConstructorInvocation createPointCutConstructor(
+      Expression targetExpression,
+      {Procedure? stubProcedure}) {
+    final Arguments pointCutConstructorArguments = Arguments.empty();
+    pointCutConstructorArguments.positional.add(targetExpression);
+
+    if (stubProcedure != null) {
+      final bool returnValue = stubProcedure.function.returnType is! VoidType;
+      if (returnValue) {
+        //this.stubProcedure
+        Arguments stubArgs = AopUtils.argumentsFromFunctionNode(stubProcedure.function);
+        InstanceInvocation resultInstanceInvocation = InstanceInvocation(
+            InstanceAccessKind.Instance,
+            ThisExpression(),
+            stubProcedure.name,
+            stubArgs,
+            interfaceTarget: stubProcedure,
+            functionType: computeFunctionTypeForFunctionNode(
+                stubProcedure.function, stubArgs));
+
+        NamedExpression namedExpression = NamedExpression(kAopAnnotationClassPointCutResult,resultInstanceInvocation);
+        pointCutConstructorArguments.named.add(namedExpression);
+      }
+    }
+    final ConstructorInvocation pointCutConstructorInvocation =
+        ConstructorInvocation(pointCutProceedClass!.constructors.first,
+            pointCutConstructorArguments);
+    return pointCutConstructorInvocation;
   }
 
   //Generic Operation

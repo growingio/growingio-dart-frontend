@@ -60,6 +60,16 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
           }
         }
       }
+
+      if (RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION)
+          .hasMatch(library.importUri.toString())) {
+        final List<Class> classes = library.classes;
+        for (Class cls in classes) {
+          if (cls.name == AopUtils.kAopAnnotationClassPointCut) {
+            AopUtils.pointCutProceedClass = cls;
+          }
+        }
+      }
     }
   }
 
@@ -85,6 +95,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
           String? methodName;
           bool isRegex = false;
           bool isStatic = false;
+          bool isAfter = false;
           instanceConstant.fieldValues
               .forEach((Reference reference, Constant constant) {
             if (constant is StringConstant) {
@@ -108,6 +119,9 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
               } else if ((reference.node as Field).name.toString() ==
                   AopUtils.kAopAnnotationIsStatic) {
                 isStatic = value;
+              } else if ((reference.node as Field).name.toString() ==
+                  AopUtils.kAopAnnotationIsAfter) {
+                isAfter = value;
               }
             }
           });
@@ -115,7 +129,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
           member.annotations.clear();
 
           return GrowingioAopInfo(importUri!, clsName!, methodName!, member,
-              isStatic: isStatic, isRegex: isRegex);
+              isStatic: isStatic, isRegex: isRegex, isAfter: isAfter);
         }
       }
       //Debug Mode
@@ -139,6 +153,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
         String methodName = stringLiteral2.value;
         bool isRegex = false;
         bool isStatic = false;
+        bool isAfter = false;
         for (NamedExpression namedExpression
             in constructorInvocation.arguments.named) {
           if (namedExpression.name == AopUtils.kAopAnnotationIsRegex) {
@@ -149,11 +164,15 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
             final BoolLiteral boolLiteral =
                 namedExpression.value as BoolLiteral;
             isStatic = boolLiteral.value;
+          } else if (namedExpression.name == AopUtils.kAopAnnotationIsAfter) {
+            final BoolLiteral boolLiteral =
+                namedExpression.value as BoolLiteral;
+            isAfter = boolLiteral.value;
           }
         }
         member.annotations.clear();
         return GrowingioAopInfo(importUri, clsName, methodName, member,
-            isStatic: isStatic, isRegex: isRegex);
+            isStatic: isStatic, isRegex: isRegex, isAfter: isAfter);
       }
     }
     return null;

@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 class GrowingioAopInfo {
   GrowingioAopInfo(
       this.importUri, this.clsName, this.methodName, this.member, {this.isStatic = false,
-      this.isRegex = false});
+      this.isRegex = false,this.isAfter = false});
 
   final String importUri;
   final String clsName;
@@ -14,4 +14,5 @@ class GrowingioAopInfo {
   final Member member;
   final bool isStatic;
   final bool isRegex;
+  final bool isAfter;
 }

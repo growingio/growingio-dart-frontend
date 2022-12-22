@@ -99,13 +99,17 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
         "GrowingIO Inject: ${matchedInfo.importUri}/${matchedInfo.clsName} ${matchedInfo.methodName}");
     _aopItemInfoList.remove(matchedInfo);
 
+    if (AopUtils.manipulatedProcedureSet.contains(method)) {
+      return;
+    }
+
     // deal with method
     if (matchedInfo.isStatic) {
       if (method.parent is Library) {
-        transformInstanceMethodProcedure(
+        transformStaticMethodProcedure(
             method.parent as Library, matchedInfo, method);
       } else if (method.parent is Class) {
-        transformInstanceMethodProcedure(
+        transformStaticMethodProcedure(
             method.parent!.parent as Library, matchedInfo, method);
       }
     } else {
@@ -116,48 +120,100 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
     }
   }
 
+  void transformStaticMethodProcedure(Library originalLibrary,
+      GrowingioAopInfo aopItemInfo, Procedure originalProcedure) {
+    //get function params,body and return
+    /// step1. create stub method.
+    final FunctionNode functionNode = originalProcedure.function;
+    final Statement? body = functionNode.body;
+    final bool shouldReturn =
+        originalProcedure.function.returnType is! VoidType;
+    final stubKey =
+        '${AopUtils.kAopAnnotationMethodPrefix}${originalProcedure.name.text}';
+    final originStubProcedure = _createStubProcedure(
+        Name(stubKey, originalProcedure.name.library),
+        originalProcedure,
+        body,
+        shouldReturn);
+
+    final Node? parent = originalProcedure.parent;
+
+    if (parent is Library) {
+      parent.procedures.add(originStubProcedure);
+    } else if (parent is Class) {
+      parent.procedures.add(originStubProcedure);
+    }
+
+    /// step2. inject method to origin method.
+    createPointcutCallFromOriginal(originalLibrary, aopItemInfo,
+        originalProcedure, originStubProcedure, functionNode);
+    //print("GrowingIO Function: "+functionNode.body.toString());
+  }
+
   void transformInstanceMethodProcedure(Library originalLibrary,
       GrowingioAopInfo aopItemInfo, Procedure originalProcedure) {
     //get function params,body and return
+    /// step1. create stub method.
     final FunctionNode functionNode = originalProcedure.function;
-
-    // inject GioMethod to the method top.
-    Block injectGioFunction = createPointcutCallFromOriginal(
-        originalLibrary,
-        aopItemInfo,
+    final Class originalClass = originalProcedure.parent as Class;
+    final Statement? body = functionNode.body;
+    final bool shouldReturn =
+        originalProcedure.function.returnType is! VoidType;
+    final stubKey =
+        '${AopUtils.kAopAnnotationMethodPrefix}${originalProcedure.name.text}';
+    final originStubProcedure = _createStubProcedure(
+        Name(stubKey, originalProcedure.name.library),
         originalProcedure,
-        AopUtils.argumentsFromFunctionNode(functionNode));
-    if (functionNode.body != null) {
-      injectGioFunction.addStatement(functionNode.body!);
-    }
-    functionNode.body = injectGioFunction;
+        body,
+        shouldReturn);
+
+    originalClass.procedures.add(originStubProcedure);
+
+    /// step2. inject method to origin method.
+    createPointcutCallFromOriginal(originalLibrary, aopItemInfo,
+        originalProcedure, originStubProcedure, functionNode);
     //print("GrowingIO Function: "+functionNode.body.toString());
   }
 
   // create InjectMethod
-  Block createPointcutCallFromOriginal(Library library,
-      GrowingioAopInfo aopItemInfo, Member member, Arguments arguments) {
+  void createPointcutCallFromOriginal(
+      Library library,
+      GrowingioAopInfo aopItemInfo,
+      Member member,
+      Procedure stubProcedure,
+      FunctionNode functionNode) {
     AopUtils.insertLibraryDependency(
         library, aopItemInfo.member.parent?.parent as Library);
     Expression? callExpression;
     if (aopItemInfo.member is Procedure) {
       final Procedure procedure = aopItemInfo.member as Procedure;
-
+      Arguments arguments = AopUtils.argumentsFromFunctionNode(functionNode);
       Arguments injectArgs =
           AopUtils.argumentsFromFunctionNode(procedure.function);
-      if (injectArgs.positional.isEmpty) return Block(<Statement>[]);
+      if (injectArgs.positional.isEmpty) return;
 
       int addition = 1;
-      injectArgs.positional[0] = ThisExpression();
+      if (!aopItemInfo.isAfter) {
+        injectArgs.positional[0] =
+            AopUtils.createPointCutConstructor(ThisExpression());
+      } else {
+        injectArgs.positional[0] = AopUtils.createPointCutConstructor(
+            ThisExpression(),
+            stubProcedure: stubProcedure);
+      }
       if (injectArgs.positional.length > arguments.positional.length + 1) {
         print(
             "Error: Inject Method Params length more than Target Method Params");
-        return Block(<Statement>[]);
+        return;
       }
 
       // map target method params into inject method.
+      // include named expression
       for (int i = addition; i < injectArgs.positional.length; i++) {
         injectArgs.positional[i] = arguments.positional[i - addition];
+      }
+      for (int i = 0; i < injectArgs.named.length; i++) {
+        injectArgs.named[i] = arguments.named[i];
       }
 
       print("GrowingIO inject: args " + injectArgs.toString());
@@ -184,16 +240,77 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
       }
     }
 
-    // inject always needn't return
+    // inject after need return
     final bool shouldReturn =
-        !((aopItemInfo.member as Procedure).function.returnType is VoidType);
+        (aopItemInfo.member as Procedure).function.returnType is! VoidType;
 
     final Block bodyStatements = Block(<Statement>[]);
-    if (shouldReturn) {
-      bodyStatements.addStatement(ReturnStatement(callExpression));
+    Statement injectStatement = shouldReturn
+        ? ReturnStatement(callExpression)
+        : ExpressionStatement(callExpression!);
+
+    if (functionNode.body != null) {
+      final bool returnValue = stubProcedure.function.returnType is! VoidType;
+      if (aopItemInfo.isAfter && returnValue) {
+        bodyStatements.addStatement(injectStatement);
+        functionNode.body = bodyStatements;
+      } else {
+        Arguments stubArgs =
+            AopUtils.argumentsFromFunctionNode(stubProcedure.function);
+        InstanceInvocation resultInstanceInvocation = InstanceInvocation(
+            InstanceAccessKind.Instance,
+            ThisExpression(),
+            stubProcedure.name,
+            stubArgs,
+            interfaceTarget: stubProcedure,
+            functionType: AopUtils.computeFunctionTypeForFunctionNode(
+                stubProcedure.function, stubArgs));
+        Statement originStatement = returnValue
+            ? ReturnStatement(resultInstanceInvocation)
+            : ExpressionStatement(resultInstanceInvocation);
+
+        if (aopItemInfo.isAfter) {
+          bodyStatements.addStatement(originStatement);
+          bodyStatements.addStatement(injectStatement);
+        } else {
+          bodyStatements.addStatement(injectStatement);
+          bodyStatements.addStatement(originStatement);
+        }
+        functionNode.body = bodyStatements;
+      }
     } else {
-      bodyStatements.addStatement(ExpressionStatement(callExpression!));
+      functionNode.body = bodyStatements;
     }
-    return bodyStatements;
+  }
+
+  Procedure _createStubProcedure(Name methodName, Procedure referProcedure,
+      Statement? bodyStatements, bool shouldReturn) {
+    //build stub method nodes.
+    final FunctionNode functionNode = FunctionNode(bodyStatements,
+        typeParameters: AopUtils.deepCopyASTNodes<TypeParameter>(
+            referProcedure.function.typeParameters),
+        positionalParameters: referProcedure.function.positionalParameters,
+        namedParameters: referProcedure.function.namedParameters,
+        requiredParameterCount: referProcedure.function.requiredParameterCount,
+        returnType: shouldReturn
+            ? AopUtils.deepCopyASTNode(referProcedure.function.returnType)
+            : const VoidType(),
+        asyncMarker: referProcedure.function.asyncMarker,
+        dartAsyncMarker: referProcedure.function.dartAsyncMarker);
+    final Procedure procedure = Procedure(
+      Name(methodName.text, methodName.library),
+      ProcedureKind.Method,
+      functionNode,
+      isStatic: referProcedure.isStatic,
+      fileUri: referProcedure.fileUri,
+      stubKind: referProcedure.stubKind,
+      stubTarget: referProcedure.stubTarget,
+    );
+
+    procedure.fileOffset = referProcedure.fileOffset;
+    procedure.fileEndOffset = referProcedure.fileEndOffset;
+    procedure.fileStartOffset = referProcedure.fileStartOffset;
+    AopUtils.manipulatedProcedureSet.add(referProcedure);
+    return procedure;
   }
 }
