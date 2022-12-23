@@ -15,6 +15,7 @@ class AopUtils {
   static String kAopAnnotationClassPointCut = 'PointCut';
   static String kAopAnnotationClassPointCutResult = 'result';
   static String kAopAnnotationClassInject = 'Inject';
+  static String kAopAnnotationClassSuperInject = 'SuperInject';
   static String kAopAnnotationImportUri = 'importUri';
   static String kAopAnnotationClsName = 'clsName';
   static String kAopAnnotationMethodName = 'methodName';
@@ -22,21 +23,34 @@ class AopUtils {
   static String kAopAnnotationIsStatic = 'isStatic';
   static String kAopAnnotationIsAfter = 'isAfter';
   static String kAopAnnotationMethodPrefix = 'gio_stub_';
+  static int kAopAnnotationMethodIndex = 0;
 
   static const String GROWINGIO_INJECT_IMPL =
       r'^package:[a-zA-Z_]*/growingio_inject_impl.dart$';
   static const String GROWINGIO_INJECT_ANNOTATION =
-      r'^package:[a-zA-Z_]*/growingio_inject_annotation.dart';
+      r'^package:[a-zA-Z_]*/growingio_inject_annotation.dart$';
   static Set<Procedure> manipulatedProcedureSet = {};
 
   static Class? pointCutProceedClass;
 
-  static bool getAopModeByNameAndImportUri(String name, String importUri) {
-    if (name == kAopAnnotationClassInject &&
-        RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION).hasMatch(importUri)) {
-      return true;
+  static String getStubMethodName(String methodName) {
+    String tempKey = '$kAopAnnotationMethodPrefix$methodName';
+    final stubKey = kAopAnnotationMethodIndex == 0
+        ? tempKey
+        : "${tempKey}_$kAopAnnotationMethodIndex";
+    kAopAnnotationMethodIndex += 1;
+    return stubKey;
+  }
+
+  static int getAopModeByNameAndImportUri(String name, String importUri) {
+    if (RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION).hasMatch(importUri)) {
+      if (name == kAopAnnotationClassInject) {
+        return 0;
+      } else if (name == kAopAnnotationClassSuperInject) {
+        return 1;
+      }
     }
-    return false;
+    return -1;
   }
 
   static ConstructorInvocation createPointCutConstructor(
@@ -49,7 +63,8 @@ class AopUtils {
       final bool returnValue = stubProcedure.function.returnType is! VoidType;
       if (returnValue) {
         //this.stubProcedure
-        Arguments stubArgs = AopUtils.argumentsFromFunctionNode(stubProcedure.function);
+        Arguments stubArgs =
+            AopUtils.argumentsFromFunctionNode(stubProcedure.function);
         InstanceInvocation resultInstanceInvocation = InstanceInvocation(
             InstanceAccessKind.Instance,
             ThisExpression(),
@@ -59,7 +74,8 @@ class AopUtils {
             functionType: computeFunctionTypeForFunctionNode(
                 stubProcedure.function, stubArgs));
 
-        NamedExpression namedExpression = NamedExpression(kAopAnnotationClassPointCutResult,resultInstanceInvocation);
+        NamedExpression namedExpression = NamedExpression(
+            kAopAnnotationClassPointCutResult, resultInstanceInvocation);
         pointCutConstructorArguments.named.add(namedExpression);
       }
     }

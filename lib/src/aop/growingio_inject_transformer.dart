@@ -21,7 +21,6 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
       GrowingioAopInfo info = _aopItemInfoList[i];
       matches = _judgeLibrary(info, importUri);
       if (matches) {
-        //print("GrowingIO Inject: " + importUri);
         library.visitChildren(this);
         break;
       }
@@ -47,7 +46,6 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
           (!info.isRegex && info.clsName == clsName)) {
         matches = _judgeClass(info, clsName);
         if (matches) {
-          //print("GrowingIO Inject: " + clsName);
           clazz.visitChildren(this);
           break;
         }
@@ -128,8 +126,7 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
     final Statement? body = functionNode.body;
     final bool shouldReturn =
         originalProcedure.function.returnType is! VoidType;
-    final stubKey =
-        '${AopUtils.kAopAnnotationMethodPrefix}${originalProcedure.name.text}';
+    final stubKey = AopUtils.getStubMethodName(originalProcedure.name.text);
     final originStubProcedure = _createStubProcedure(
         Name(stubKey, originalProcedure.name.library),
         originalProcedure,
@@ -147,7 +144,7 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
     /// step2. inject method to origin method.
     createPointcutCallFromOriginal(originalLibrary, aopItemInfo,
         originalProcedure, originStubProcedure, functionNode);
-    //print("GrowingIO Function: "+functionNode.body.toString());
+    //print("GrowingIO Inject Function: "+functionNode.body.toString());
   }
 
   void transformInstanceMethodProcedure(Library originalLibrary,
@@ -159,8 +156,7 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
     final Statement? body = functionNode.body;
     final bool shouldReturn =
         originalProcedure.function.returnType is! VoidType;
-    final stubKey =
-        '${AopUtils.kAopAnnotationMethodPrefix}${originalProcedure.name.text}';
+    final stubKey = AopUtils.getStubMethodName(originalProcedure.name.text);
     final originStubProcedure = _createStubProcedure(
         Name(stubKey, originalProcedure.name.library),
         originalProcedure,
@@ -172,7 +168,7 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
     /// step2. inject method to origin method.
     createPointcutCallFromOriginal(originalLibrary, aopItemInfo,
         originalProcedure, originStubProcedure, functionNode);
-    //print("GrowingIO Function: "+functionNode.body.toString());
+    //print("GrowingIO Inject Function: "+functionNode.body.toString());
   }
 
   // create InjectMethod
@@ -216,7 +212,7 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
         injectArgs.named[i] = arguments.named[i];
       }
 
-      print("GrowingIO inject: args " + injectArgs.toString());
+      print("GrowingIO inject args: " + injectArgs.toString());
 
       if (procedure.isStatic) {
         callExpression =
@@ -236,13 +232,12 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
             functionType: AopUtils.computeFunctionTypeForFunctionNode(
                 (aopItemInfo.member as Procedure).function, injectArgs));
 
-        print("GrowingIO inject: expression  " + callExpression.toString());
+        print("GrowingIO inject expression:  " + callExpression.toString());
       }
     }
 
     // inject after need return
-    final bool shouldReturn =
-        (aopItemInfo.member as Procedure).function.returnType is! VoidType;
+    final bool shouldReturn = functionNode.returnType is! VoidType;
 
     final Block bodyStatements = Block(<Statement>[]);
     Statement injectStatement = shouldReturn
@@ -250,8 +245,7 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
         : ExpressionStatement(callExpression!);
 
     if (functionNode.body != null) {
-      final bool returnValue = stubProcedure.function.returnType is! VoidType;
-      if (aopItemInfo.isAfter && returnValue) {
+      if (aopItemInfo.isAfter && shouldReturn) {
         bodyStatements.addStatement(injectStatement);
         functionNode.body = bodyStatements;
       } else {
@@ -265,20 +259,22 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
             interfaceTarget: stubProcedure,
             functionType: AopUtils.computeFunctionTypeForFunctionNode(
                 stubProcedure.function, stubArgs));
-        Statement originStatement = returnValue
+        Statement originStatement = shouldReturn
             ? ReturnStatement(resultInstanceInvocation)
             : ExpressionStatement(resultInstanceInvocation);
 
         if (aopItemInfo.isAfter) {
-          bodyStatements.addStatement(originStatement);
+          bodyStatements
+              .addStatement(ExpressionStatement(resultInstanceInvocation));
           bodyStatements.addStatement(injectStatement);
         } else {
-          bodyStatements.addStatement(injectStatement);
+          bodyStatements.addStatement(ExpressionStatement(callExpression!));
           bodyStatements.addStatement(originStatement);
         }
         functionNode.body = bodyStatements;
       }
     } else {
+      bodyStatements.addStatement(injectStatement);
       functionNode.body = bodyStatements;
     }
   }

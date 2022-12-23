@@ -2,6 +2,7 @@
 ///
 /// @author cpacm 2022/12/12
 import 'package:growingio_aspectd_frontend/src/aop/growingio_inject_transformer.dart';
+import 'package:growingio_aspectd_frontend/src/aop/growingio_super_inject_transformer.dart';
 import 'package:kernel/ast.dart';
 import 'package:vm/target/flutter.dart';
 
@@ -16,6 +17,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
   Component? platformStrongComponent;
 
   final List<GrowingioAopInfo> injectInfoList = <GrowingioAopInfo>[];
+  final List<GrowingioAopInfo> superInjectInfoList = <GrowingioAopInfo>[];
   final WidgetCreatorTracker tracker = WidgetCreatorTracker();
 
   @override
@@ -26,6 +28,11 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
     // transform
     if (injectInfoList.isNotEmpty) {
       component.visitChildren(GrowingIOInjectTransformer(injectInfoList));
+    }
+
+    // super inject transform
+    if (superInjectInfoList.isNotEmpty) {
+      component.visitChildren(GrowingIOSuperInjectTransformer(superInjectInfoList));
     }
   }
 
@@ -55,7 +62,11 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
             }
             final GrowingioAopInfo? aopItemInfo = _processAopMember(member);
             if (aopItemInfo != null) {
-              injectInfoList.add(aopItemInfo);
+              if (aopItemInfo.gioInjectType == 0) {
+                injectInfoList.add(aopItemInfo);
+              } else if (aopItemInfo.gioInjectType == 1) {
+                superInjectInfoList.add(aopItemInfo);
+              }
             }
           }
         }
@@ -85,10 +96,10 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
 
           final Class instanceClass =
               instanceConstant.classReference.node as Class;
-          final bool isGioInject = AopUtils.getAopModeByNameAndImportUri(
+          final int gioInjectType = AopUtils.getAopModeByNameAndImportUri(
               instanceClass.name,
               (instanceClass.parent as Library).importUri.toString());
-          if (!isGioInject) continue;
+          if (gioInjectType < 0) continue;
 
           String? importUri;
           String? clsName;
@@ -129,7 +140,10 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
           member.annotations.clear();
 
           return GrowingioAopInfo(importUri!, clsName!, methodName!, member,
-              isStatic: isStatic, isRegex: isRegex, isAfter: isAfter);
+              isStatic: isStatic,
+              isRegex: isRegex,
+              isAfter: isAfter,
+              gioInjectType: gioInjectType);
         }
       }
       //Debug Mode
@@ -138,9 +152,9 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
         final Class cls =
             constructorInvocation.targetReference.node?.parent as Class;
         final Library clsParentLib = cls.parent as Library;
-        final bool isGioInject = AopUtils.getAopModeByNameAndImportUri(
+        final int gioInjectType = AopUtils.getAopModeByNameAndImportUri(
             cls.name, clsParentLib.importUri.toString());
-        if (!isGioInject) continue;
+        if (gioInjectType < 0) continue;
 
         final StringLiteral stringLiteral0 =
             constructorInvocation.arguments.positional[0] as StringLiteral;
@@ -172,7 +186,10 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
         }
         member.annotations.clear();
         return GrowingioAopInfo(importUri, clsName, methodName, member,
-            isStatic: isStatic, isRegex: isRegex, isAfter: isAfter);
+            isStatic: isStatic,
+            isRegex: isRegex,
+            isAfter: isAfter,
+            gioInjectType: gioInjectType);
       }
     }
     return null;
