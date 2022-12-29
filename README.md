@@ -34,11 +34,56 @@ flutter clean
 
 ### 声明注解
 固定文件名为 `growingio_inject_annotation.dart`. 
-注解为 @Inject，参数为importUri，clsName，methodName；可选为isRegex，isStatic。
+注解一为 @Inject，注入到对象方法中，参数为importUri，clsName，methodName；可选为isRegex，isStatic，isAfter。
+注解二为 @SuperInject,注入到其指定类的子类中，参数与 @Inject 一致。
 
 ### 注解插入
 固定文件名为 `growingio_inject_impl.dart`.
-插入统一为插入方法的入口处，可以接收原方法的所有参数或者少于原方法的参数个数。
+注入有两种方式，注入方式和参数如下所示：
+
+@Inject 各个参数解释如下表：
+
+|  参数   |  默认值  | 解释 |
+| ----  | ---- | ---- |
+| importUri  | - | 注入指定的 library 路径 |
+| clsName  | - | 指定的类名 |
+| methodName | - | 指定的方法名 |
+| isRegex | false | 是否需要对路径进行正则匹配 | 
+| isStatic | false | 指定的方法是否是静态方法 |
+| isAfter | false | 是否注入方法的最后一行 |
+
+@SuperInject 通过指定父类的路径和类名，所有继承该父类的子类中若包含指定的方法都会被Hook注入。
+
+|  参数   |  默认值  | 解释 |
+| ----  | ---- | ---- |
+| importUri  | - | 指定父类的路径 |
+| clsName  | - | 指定指定父类的类名 |
+| methodName | - | 指定的方法名 |
+| isRegex | false | 是否需要对路径进行正则匹配 | 
+| isStatic | false | 指定的方法是否是静态方法 |
+| isAfter | false | 是否注入方法的最后一行 |
+
+关于参数说明，第一个参数统一规定为 `PointCut`，它包含 **target=>this** 和 **result=>方法返回值** 两个属性。其中只有isAfter为true且hook注入的方法有返回值时**result**才会有值。
+其他剩余参数一一对应原方法的参数。注：可以少于原方法的参数个数。
+
+如下方的方法
+```dart
+  /// 原方法为 "package:flutter/src/widgets/navigator.dart" 文件下的类 "_RouteEntry"的"handlePop"方法。
+    @Inject(
+      "package:flutter/src/widgets/navigator.dart", "_RouteEntry", "handlePop",
+      isAfter: true)
+  @pragma("vm:entry-point")
+  /// 第一个参数统一为 PointCut,剩余的参数为原方法的入参，可以原封不动的挪过来。
+  dynamic _routeHandlePop(PointCut pointCut,
+      {required NavigatorState navigator,
+      required Route<dynamic>? previousPresent}) {
+    /// PointCut的target参数代表原方法中this
+    dynamic target = pointCut.target;
+    GrowingPageProvider.getInstance().handlePop(target.route, previousPresent);
+    /// PointCut的result方法代表原方法的返回值。
+    return pointCut.result;
+  }
+```
 
 ## 如何编译
 
@@ -93,56 +138,3 @@ const String _locationFieldName = r'_gio_location';
   }
 ```
 Inspecttor_service 位置：https://github.com/flutter/devtools/blob/master/packages/devtools_app/lib/src/screens/inspector/inspector_service.dart
-
-## Growingio 无埋点需要HOOK的点
-
-### 点击事件
-
-> call
-> package:flutter/src/gestures/hit_test.dart  HitTestTarget  -handleEvent
-> 插入 GrowingHelper.getInstance().handleEvent(RenderObject, pointerEvent);
-
-> Execute
-> package:flutter/src/gestures/recognizer.dart  GestureRecognizer  -invokeCallback
-> GrowingHelper.getInstance().handleClickEvent(eventName);
-
-### widget 路径优化
-
-> Execute
-> package:flutter/src/widgets/framework.dart  RenderObjectElement  -mount || -update
-> element.renderObject?.debugCreator = DebugCreator(element);
-
-
-### path 页面
-
-> Execute
-> package:flutter/src/widgets/navigator.dart **_RouteEntry** -handlePush
-> GrowingHelper.getInstance().handlePush(target.route,previous);
-
-> Execute
-> package:flutter/src/widgets/navigator.dart  **_RouteEntry** -handlePop
-> GrowingHelper.getInstance().handlePop(target.route,previous);
-
-> Execute
-> package:flutter/src/material/page.dart  MaterialRouteTransitionMixin  -buildPage
-> GrowingHelper.getInstance().handleBuildPage(target,widgetResult.child!, pointCut.positionalParams[0]);
-
-> Execute
-> package:flutter/src/widgets/framework.dart  Element  -deactivateChild
-> GrowingHelper.getInstance().handleDeactivate(target,pointCut.positionalParams[0]);
-
-> Execute
-> package:flutter/src/cupertino/route.dart  CupertinoRouteTransitionMixin  -buildPage
-> GrowingHelper.getInstance().handleBuildPage(target,widgetResult.child!, pointCut.positionalParams[0]);
-
-
-### 页面刷新
-> Execute
-> package:flutter/src/scheduler/binding.dart  SchedulerBinding  -handleDrawFrame
-> GrowingHelper.getInstance().handleDrawFrame();
-
-> Execute
-> package:flutter/src/widgets/editable_text.dart  EditableTextState  -updateEditingValue
-> GrowingHelper.getInstance().handleTextChanged(pointCut.target as EditableTextState, pointCut.positionalParams[0]);
-
-

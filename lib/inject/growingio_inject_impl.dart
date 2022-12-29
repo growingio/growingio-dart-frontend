@@ -5,10 +5,10 @@ import 'growingio_inject_annotation.dart';
 /// @author cpacm 2022/12/12
 @pragma("vm:entry-point")
 class GrowingClickInject {
-
-  @Inject("package:growingio_sdk_flutter/main.dart", "_MyHomePageState", "_incrementCounter")
+  @Inject("package:flutter/src/gestures/recognizer.dart", "GestureRecognizer",
+      "invokeCallback")
   @pragma("vm:entry-point")
-  void _incrementCounter() {
-    print('KWLM called!');
+  void _invokeCallback(PointCut target, String name) {
+    print(name);
   }
 }
