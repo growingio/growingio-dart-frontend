@@ -16,7 +16,7 @@ import 'package:path/path.dart';
 // The parameter name contains a randomly generated hex string to avoid
 // collision with user generated parameters.
 const String _creationLocationParameterName =
-    r'$creationLocationd_0dea112b090073317d4';
+    r'$growingLocation_0dea112b090073317d4';
 
 /// Name of private field added to the Widget class and any other classes that
 /// implement Widget.
@@ -376,7 +376,6 @@ class WidgetCreatorTracker {
             _entryUrlList.removeWhere((element) => element == toRemoveItem);
           } else {
             if (_rootUrlList.isEmpty && importUri.path.contains('main.dart')) {
-              //排除类似 package:testdemo/home/lib/main.dart 这样的路径的 main.dart
               if (importUri.path.split('/').length == 2) {
                 if (library.fileUri != null && library.fileUri.toString().endsWith('/lib/main.dart')) {
                   final String fileUriString = library.fileUri.toString();
