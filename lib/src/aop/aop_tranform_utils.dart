@@ -15,13 +15,13 @@ class AopUtils {
   static String kAopAnnotationClassPointCut = 'PointCut';
   static String kAopAnnotationClassPointCutResult = 'result';
   static String kAopAnnotationClassInject = 'Inject';
-  static String kAopAnnotationClassSuperInject = 'SuperInject';
   static String kAopAnnotationImportUri = 'importUri';
   static String kAopAnnotationClsName = 'clsName';
   static String kAopAnnotationMethodName = 'methodName';
   static String kAopAnnotationIsRegex = 'isRegex';
   static String kAopAnnotationIsStatic = 'isStatic';
   static String kAopAnnotationIsAfter = 'isAfter';
+  static String kAopAnnotationInjectType= 'injectType';
   static String kAopAnnotationMethodPrefix = 'gio_stub_';
   static int kAopAnnotationMethodIndex = 0;
 
@@ -42,15 +42,17 @@ class AopUtils {
     return stubKey;
   }
 
-  static int getAopModeByNameAndImportUri(String name, String importUri) {
+  static String getOnlyStubMethodName(String methodName){
+    return '$kAopAnnotationMethodPrefix$methodName';
+  }
+
+  static bool getAopModeByNameAndImportUri(String name, String importUri) {
     if (RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION).hasMatch(importUri)) {
       if (name == kAopAnnotationClassInject) {
-        return 0;
-      } else if (name == kAopAnnotationClassSuperInject) {
-        return 1;
+        return true;
       }
     }
-    return -1;
+    return false;
   }
 
   static ConstructorInvocation createPointCutConstructor(
@@ -79,6 +81,7 @@ class AopUtils {
         pointCutConstructorArguments.named.add(namedExpression);
       }
     }
+    
     final ConstructorInvocation pointCutConstructorInvocation =
         ConstructorInvocation(pointCutProceedClass!.constructors.first,
             pointCutConstructorArguments);
@@ -130,7 +133,7 @@ class AopUtils {
         positionDartType,
         deepCopyASTNode(functionNode.returnType,
             isReturnType: true, ignoreGenerics: true),
-        Nullability.nonNullable,
+        Nullability.legacy,
         namedParameters: namedDartType,
         typeParameters: [],
         requiredParameterCount: functionNode.requiredParameterCount);

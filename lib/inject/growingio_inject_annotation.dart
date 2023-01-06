@@ -22,18 +22,11 @@ class Inject {
   /// When set to true, you need to ensure that the type returned by the method is consistent with the returned type of the hook method.
   final bool isAfter;
 
+  final int injectType; //0：inject,1:superInject
+
   @pragma('vm:entry-point')
   const Inject(this.importUri, this.clsName, this.methodName,
-      {this.isRegex = false, this.isStatic = false, this.isAfter = false});
-}
-
-@pragma('vm:entry-point')
-class SuperInject extends Inject {
-  @pragma('vm:entry-point')
-  const SuperInject(String importUri, String clsName, String methodName,
-      {bool isRegex = false, bool isStatic = false, bool isAfter = false})
-      : super(importUri, clsName, methodName,
-            isRegex: isRegex, isStatic: isStatic, isAfter: isAfter);
+      {this.isRegex = false, this.isStatic = false, this.isAfter = false, this.injectType = 0});
 }
 
 @pragma('vm:entry-point')

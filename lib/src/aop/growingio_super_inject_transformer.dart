@@ -1,23 +1,18 @@
 /// <p>
 ///
 /// @author cpacm 2022/12/12
+
 import 'package:growingio_aspectd_frontend/src/aop/aop_tranform_utils.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
 import 'aop_iteminfo.dart';
-import 'growingio_inject_transformer.dart';
+import 'growingio_method_transformer.dart';
 
-class GrowingIOSuperInjectTransformer extends GrowingIOInjectTransformer {
-  GrowingIOSuperInjectTransformer(this._aopItemInfoList)
-      : super(_aopItemInfoList);
+class GrowingIOSuperInjectTransformer extends RecursiveVisitor {
+  GrowingIOSuperInjectTransformer(this._aopItemInfoList);
 
   final List<GrowingioAopInfo> _aopItemInfoList;
-
-  @override
-  void visitLibrary(Library library) {
-    library.visitChildren(this);
-  }
 
   @override
   void visitClass(Class clazz) {
@@ -86,20 +81,6 @@ class GrowingIOSuperInjectTransformer extends GrowingIOInjectTransformer {
       return;
     }
 
-    // deal with method
-    if (matchedInfo.isStatic) {
-      if (method.parent is Library) {
-        transformStaticMethodProcedure(
-            method.parent as Library, matchedInfo, method);
-      } else if (method.parent is Class) {
-        transformStaticMethodProcedure(
-            method.parent!.parent as Library, matchedInfo, method);
-      }
-    } else {
-      if (method.parent != null) {
-        transformInstanceMethodProcedure(
-            method.parent!.parent as Library, matchedInfo, method);
-      }
-    }
+    method.visitChildren(GrowingIOSuperInjectMethodTransformer(method, matchedInfo));
   }
 }

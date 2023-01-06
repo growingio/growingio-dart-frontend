@@ -96,10 +96,10 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
 
           final Class instanceClass =
               instanceConstant.classReference.node as Class;
-          final int gioInjectType = AopUtils.getAopModeByNameAndImportUri(
+          final bool isGioInject = AopUtils.getAopModeByNameAndImportUri(
               instanceClass.name,
               (instanceClass.parent as Library).importUri.toString());
-          if (gioInjectType < 0) continue;
+          if (!isGioInject) continue;
 
           String? importUri;
           String? clsName;
@@ -107,6 +107,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
           bool isRegex = false;
           bool isStatic = false;
           bool isAfter = false;
+          int injectType = 0;
           instanceConstant.fieldValues
               .forEach((Reference reference, Constant constant) {
             if (constant is StringConstant) {
@@ -135,6 +136,13 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
                 isAfter = value;
               }
             }
+
+            if (constant is IntConstant){
+              final int value = constant.value;
+              if((reference.node as Field).name.toString() == AopUtils.kAopAnnotationInjectType){
+                injectType = value;
+              }
+            }
           });
 
           member.annotations.clear();
@@ -143,7 +151,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
               isStatic: isStatic,
               isRegex: isRegex,
               isAfter: isAfter,
-              gioInjectType: gioInjectType);
+              gioInjectType: injectType);
         }
       }
       //Debug Mode
@@ -152,9 +160,9 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
         final Class cls =
             constructorInvocation.targetReference.node?.parent as Class;
         final Library clsParentLib = cls.parent as Library;
-        final int gioInjectType = AopUtils.getAopModeByNameAndImportUri(
+        final bool isGioInject = AopUtils.getAopModeByNameAndImportUri(
             cls.name, clsParentLib.importUri.toString());
-        if (gioInjectType < 0) continue;
+        if (!isGioInject) continue;
 
         final StringLiteral stringLiteral0 =
             constructorInvocation.arguments.positional[0] as StringLiteral;
@@ -168,6 +176,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
         bool isRegex = false;
         bool isStatic = false;
         bool isAfter = false;
+        int injectType = 0;
         for (NamedExpression namedExpression
             in constructorInvocation.arguments.named) {
           if (namedExpression.name == AopUtils.kAopAnnotationIsRegex) {
@@ -182,6 +191,10 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
             final BoolLiteral boolLiteral =
                 namedExpression.value as BoolLiteral;
             isAfter = boolLiteral.value;
+          }else if (namedExpression.name == AopUtils.kAopAnnotationInjectType) {
+            final IntLiteral intLiteral =
+                namedExpression.value as IntLiteral;
+            injectType = intLiteral.value;
           }
         }
         member.annotations.clear();
@@ -189,7 +202,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
             isStatic: isStatic,
             isRegex: isRegex,
             isAfter: isAfter,
-            gioInjectType: gioInjectType);
+            gioInjectType: injectType);
       }
     }
     return null;

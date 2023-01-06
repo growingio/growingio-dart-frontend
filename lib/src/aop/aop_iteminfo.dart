@@ -8,7 +8,7 @@ class GrowingioAopInfo {
       {this.isStatic = false,
       this.isRegex = false,
       this.isAfter = false,
-      this.gioInjectType = 0});
+      this.gioInjectType = 0});//0:inject;1:SuperInject
 
   final String importUri;
   final String clsName;
