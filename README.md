@@ -51,17 +51,10 @@ flutter clean
 | isRegex | false | 是否需要对路径进行正则匹配 | 
 | isStatic | false | 指定的方法是否是静态方法 |
 | isAfter | false | 是否注入方法的最后一行 |
+| injectType | 0 | 注入方式 0:普通注入，1：SuperInject |
 
 @SuperInject 通过指定父类的路径和类名，所有继承该父类的子类中若包含指定的方法都会被Hook注入。
-
-|  参数   |  默认值  | 解释 |
-| ----  | ---- | ---- |
-| importUri  | - | 指定父类的路径 |
-| clsName  | - | 指定指定父类的类名 |
-| methodName | - | 指定的方法名 |
-| isRegex | false | 是否需要对路径进行正则匹配 | 
-| isStatic | false | 指定的方法是否是静态方法 |
-| isAfter | false | 是否注入方法的最后一行 |
+> importUri变为指定父类的路径 clsName变为指定指定父类的类名
 
 关于参数说明，第一个参数统一规定为 `PointCut`，它包含 **target=>this** 和 **result=>方法返回值** 两个属性。其中只有isAfter为true且hook注入的方法有返回值时**result**才会有值。
 其他剩余参数一一对应原方法的参数。注：可以少于原方法的参数个数。

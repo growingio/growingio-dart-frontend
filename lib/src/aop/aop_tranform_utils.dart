@@ -33,15 +33,6 @@ class AopUtils {
 
   static Class? pointCutProceedClass;
 
-  static String getStubMethodName(String methodName) {
-    String tempKey = '$kAopAnnotationMethodPrefix$methodName';
-    final stubKey = kAopAnnotationMethodIndex == 0
-        ? tempKey
-        : "${tempKey}_$kAopAnnotationMethodIndex";
-    kAopAnnotationMethodIndex += 1;
-    return stubKey;
-  }
-
   static String getOnlyStubMethodName(String methodName){
     return '$kAopAnnotationMethodPrefix$methodName';
   }
@@ -53,39 +44,6 @@ class AopUtils {
       }
     }
     return false;
-  }
-
-  static ConstructorInvocation createPointCutConstructor(
-      Expression targetExpression,
-      {Procedure? stubProcedure}) {
-    final Arguments pointCutConstructorArguments = Arguments.empty();
-    pointCutConstructorArguments.positional.add(targetExpression);
-
-    if (stubProcedure != null) {
-      final bool returnValue = stubProcedure.function.returnType is! VoidType;
-      if (returnValue) {
-        //this.stubProcedure
-        Arguments stubArgs =
-            AopUtils.argumentsFromFunctionNode(stubProcedure.function);
-        InstanceInvocation resultInstanceInvocation = InstanceInvocation(
-            InstanceAccessKind.Instance,
-            ThisExpression(),
-            stubProcedure.name,
-            stubArgs,
-            interfaceTarget: stubProcedure,
-            functionType: computeFunctionTypeForFunctionNode(
-                stubProcedure.function, stubArgs));
-
-        NamedExpression namedExpression = NamedExpression(
-            kAopAnnotationClassPointCutResult, resultInstanceInvocation);
-        pointCutConstructorArguments.named.add(namedExpression);
-      }
-    }
-    
-    final ConstructorInvocation pointCutConstructorInvocation =
-        ConstructorInvocation(pointCutProceedClass!.constructors.first,
-            pointCutConstructorArguments);
-    return pointCutConstructorInvocation;
   }
 
   //Generic Operation
