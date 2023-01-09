@@ -96,13 +96,14 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
       //   print("GrowingIO SuperInject Statement:$s");
       // }
       procedure.function.body = newBlock;
-      print("GrowingIO SuperInject FunctionNode:${procedure.function.body}");
+      AopUtils.manipulatedProcedureSet.add(procedure);
+      print("GrowingIO Inject FunctionNode:${procedure.function.body}");
     }
   }
 
   @override
   void visitFunctionNode(FunctionNode node) {
-    print("GrowingIO SuperInject visitFunctionNode:${node.parent.toString()}");
+    print("GrowingIO Inject visitFunctionNode:${node.parent.toString()}");
     node.visitChildren(this);
   }
 
