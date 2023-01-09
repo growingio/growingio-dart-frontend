@@ -1,12 +1,12 @@
 /// <p>
 ///
 /// @author cpacm 2022/12/12
-import 'package:growingio_aspectd_frontend/src/aop/aop_tranform_utils.dart';
+
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_algebra.dart';
 
 import 'aop_iteminfo.dart';
 import 'growingio_method_transformer.dart';
+import 'aop_tranform_utils.dart';
 
 class GrowingIOInjectTransformer extends RecursiveVisitor {
   GrowingIOInjectTransformer(this._aopItemInfoList);
@@ -94,7 +94,7 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
       return;
     }
 
-    print(
+    Logger.p(
         "GrowingIO Inject: ${matchedInfo.importUri}/${matchedInfo.clsName} ${matchedInfo.methodName}");
     _aopItemInfoList.remove(matchedInfo);
 

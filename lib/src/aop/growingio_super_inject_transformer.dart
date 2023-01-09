@@ -2,11 +2,12 @@
 ///
 /// @author cpacm 2022/12/12
 
-import 'package:growingio_aspectd_frontend/src/aop/aop_tranform_utils.dart';
+
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_algebra.dart';
+
 
 import 'aop_iteminfo.dart';
+import 'aop_tranform_utils.dart';
 import 'growingio_method_transformer.dart';
 
 class GrowingIOSuperInjectTransformer extends RecursiveVisitor {
@@ -74,10 +75,9 @@ class GrowingIOSuperInjectTransformer extends RecursiveVisitor {
       printMsg = "${(method.parent as Library).importUri.toString()} $printMsg";
     }
     printMsg += methodName;
-    print("GrowingIO SuperInject: $printMsg");
+    Logger.p("GrowingIO SuperInject: $printMsg");
 
     if (AopUtils.manipulatedProcedureSet.contains(method)) {
-      print("GrowingIO manipulatedProcedureSet: $method");
       return;
     }
 

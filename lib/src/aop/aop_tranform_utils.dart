@@ -1,13 +1,10 @@
-import 'dart:convert';
-import 'dart:ffi';
-import 'dart:mirrors';
-
+import 'dart:developer';
 import 'package:kernel/ast.dart';
 
 /// <p>
 ///
 /// @author cpacm 2022/12/12
-import 'aop_iteminfo.dart';
+
 
 class AopUtils {
   AopUtils();
@@ -186,5 +183,35 @@ class AopUtils {
           deepCopyASTNodes(node.typeArguments, ignoreGeneric: ignoreGenerics));
     }
     return node;
+  }
+}
+
+class Logger {
+  static void d(String log) {
+    _debugLog(log);
+  }
+
+  static void e(String msg, {StackTrace? stackTrace, Object? error}) {
+    log(msg,
+        name: "GrowingIO TRACK: ${DateTime.now().toLocal().toString()}",
+        error: error,
+        stackTrace: stackTrace);
+  }
+
+  static void p(String msg) {
+    assert(() {
+      print(msg);
+      return true;
+    }());
+  }
+
+  static void _debugLog(String msg, {StackTrace? stackTrace, Object? error}) {
+    assert(() {
+      log(msg,
+          name: "GrowingIO TRACK",
+          error: error,
+          stackTrace: stackTrace);
+      return true;
+    }());
   }
 }

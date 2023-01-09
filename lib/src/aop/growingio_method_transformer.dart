@@ -2,21 +2,23 @@
 ///
 /// @author cpacm 2023/01/06
 
-import 'package:growingio_aspectd_frontend/src/aop/aop_tranform_utils.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
+import 'aop_tranform_utils.dart';
 import 'aop_iteminfo.dart';
 
 class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
   GrowingIOSuperInjectMethodTransformer(this.procedure, this.aopItemInfo);
   final Procedure procedure;
   final GrowingioAopInfo aopItemInfo;
+  bool hasCreateStubProcedure = false;
 
   @override
   void visitBlock(Block node) {
     if (node.parent != null && node.parent is FunctionNode) {
       Procedure stubProcedure = _createStubProcedureAndInsert(procedure);
+      if (hasCreateStubProcedure) return;
       final Procedure aopProcedure = aopItemInfo.member as Procedure;
       bool shouldReturn = procedure.function.returnType is! VoidType;
       //check aop member if it is legal
@@ -72,9 +74,9 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
             newBlock.addStatement(injectStatement);
           }
           returnStatement = ReturnStatement(stubInstanceInvocation);
-            newBlock.addStatement(returnStatement);
+          newBlock.addStatement(returnStatement);
         }
-      }else{
+      } else {
         if (aopItemInfo.isAfter) {
           newBlock.addStatement(ExpressionStatement(stubInstanceInvocation));
           var generateExpression = _generateAopExpression(functionNode, null);
@@ -82,7 +84,7 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
             var injectStatement = ExpressionStatement(generateExpression);
             newBlock.addStatement(injectStatement);
           }
-        }else{
+        } else {
           var generateExpression = _generateAopExpression(functionNode, null);
           if (generateExpression != null) {
             var injectStatement = ExpressionStatement(generateExpression);
@@ -90,20 +92,19 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
           }
           newBlock.addStatement(ExpressionStatement(stubInstanceInvocation));
         }
-         
       }
       // for(Statement s in newBlock.statements){
       //   print("GrowingIO SuperInject Statement:$s");
       // }
       procedure.function.body = newBlock;
       AopUtils.manipulatedProcedureSet.add(procedure);
-      print("GrowingIO Inject FunctionNode:${procedure.function.body}");
+      Logger.d("GrowingIO Inject FunctionNode:${procedure.function.body}");
     }
   }
 
   @override
   void visitFunctionNode(FunctionNode node) {
-    print("GrowingIO Inject visitFunctionNode:${node.parent.toString()}");
+    Logger.d("GrowingIO Inject visitFunctionNode:${node.parent.toString()}");
     node.visitChildren(this);
   }
 
@@ -119,7 +120,7 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
   }
 
   Procedure? _checkHasStubProcedure(Procedure referProcedure, Name stubName) {
-    var parent = procedure.parent;
+    var parent = referProcedure.parent;
     if (parent is Library) {
       for (Procedure element in parent.procedures) {
         if (element.name.text == stubName.text) {
@@ -141,6 +142,7 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
     final stubName = Name(stubKey, referProcedure.name.library);
     var stubProcedure = _checkHasStubProcedure(referProcedure, stubName);
     if (stubProcedure != null) {
+      hasCreateStubProcedure = true;
       return stubProcedure;
     }
     final Statement? bodyStatements = referProcedure.function.body;
@@ -204,7 +206,7 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
             paramExpression: paramExpression);
         if (injectArgs.positional.length >
             arguments.positional.length + addition) {
-          print(
+          Logger.e(
               "Error: Inject Method Params length more than Target Method Params");
           return null;
         }
