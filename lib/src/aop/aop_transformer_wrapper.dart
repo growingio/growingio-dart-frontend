@@ -1,15 +1,27 @@
-/// <p>
+///  GrowingAnalytics
+///  @author cpacm 2022/12/12
+///  Copyright (C) 2023 Beijing Yishu Technology Co., Ltd.
 ///
-/// @author cpacm 2022/12/12
-import 'package:growingio_aspectd_frontend/src/aop/growingio_inject_transformer.dart';
-import 'package:growingio_aspectd_frontend/src/aop/growingio_super_inject_transformer.dart';
+///  Licensed under the Apache License, Version 2.0 (the "License");
+///  you may not use this file except in compliance with the License.
+///  You may obtain a copy of the License at
+///
+///      http://www.apache.org/licenses/LICENSE-2.0
+///
+///  Unless required by applicable law or agreed to in writing, software
+///  distributed under the License is distributed on an "AS IS" BASIS,
+///  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+///  See the License for the specific language governing permissions and
+///  limitations under the License.
+
 import 'package:kernel/ast.dart';
 import 'package:vm/target/flutter.dart';
 
-import 'aop_iteminfo.dart';
-import 'aop_tranform_utils.dart';
-
-import 'track_widget_custom_location.dart';
+import 'package:growingio_aspectd_frontend/src/aop/growingio_inject_transformer.dart';
+import 'package:growingio_aspectd_frontend/src/aop/growingio_super_inject_transformer.dart';
+import 'package:growingio_aspectd_frontend/src/aop/aop_iteminfo.dart';
+import 'package:growingio_aspectd_frontend/src/aop/aop_tranform_utils.dart';
+import 'package:growingio_aspectd_frontend/src/aop/track_widget_custom_location.dart';
 
 class AopWrapperTransformer extends FlutterProgramTransformer {
   AopWrapperTransformer({this.platformStrongComponent});
@@ -49,17 +61,12 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
 
   void _resolveAopProcedures(Iterable<Library> libraries) {
     // all inject in one library:growingio_inject_impl.dart
-    Library? gioLibrary;
     for (Library library in libraries) {
-      if (RegExp(AopUtils.GROWINGIO_INJECT_IMPL)
+      if (RegExp(AopUtils.kAopGrowingInjectImpl)
           .hasMatch(library.importUri.toString())) {
-        Library gioLibrary = library;
-        final List<Class> classes = gioLibrary.classes;
+        final List<Class> classes = library.classes;
         for (Class cls in classes) {
           for (Member member in cls.members) {
-            if (!(member is Member)) {
-              continue;
-            }
             final GrowingioAopInfo? aopItemInfo = _processAopMember(member);
             if (aopItemInfo != null) {
               if (aopItemInfo.gioInjectType == 0) {
@@ -72,7 +79,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
         }
       }
 
-      if (RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION)
+      if (RegExp(AopUtils.kAopGrowingInjectAnnotation)
           .hasMatch(library.importUri.toString())) {
         final List<Class> classes = library.classes;
         for (Class cls in classes) {
@@ -144,9 +151,7 @@ class AopWrapperTransformer extends FlutterProgramTransformer {
               }
             }
           });
-
           member.annotations.clear();
-
           return GrowingioAopInfo(importUri!, clsName!, methodName!, member,
               isStatic: isStatic,
               isRegex: isRegex,

@@ -42,20 +42,20 @@ main(List<String> arguments) async {
   final input = "app.dill";
   final output = "out.dill.txt";
 
-  final component = new Component();
+  final component = Component();
 
   // Register VM-specific metadata.
-  component.addMetadataRepository(new DirectCallMetadataRepository());
-  component.addMetadataRepository(new InferredTypeMetadataRepository());
-  component.addMetadataRepository(new ProcedureAttributesMetadataRepository());
-  component.addMetadataRepository(new TableSelectorMetadataRepository());
-  component.addMetadataRepository(new UnboxingInfoMetadataRepository());
-  component.addMetadataRepository(new UnreachableNodeMetadataRepository());
-  component.addMetadataRepository(new CallSiteAttributesMetadataRepository());
-  component.addMetadataRepository(new LoadingUnitsMetadataRepository());
+  component.addMetadataRepository(DirectCallMetadataRepository());
+  component.addMetadataRepository(InferredTypeMetadataRepository());
+  component.addMetadataRepository(ProcedureAttributesMetadataRepository());
+  component.addMetadataRepository(TableSelectorMetadataRepository());
+  component.addMetadataRepository(UnboxingInfoMetadataRepository());
+  component.addMetadataRepository(UnreachableNodeMetadataRepository());
+  component.addMetadataRepository(CallSiteAttributesMetadataRepository());
+  component.addMetadataRepository(LoadingUnitsMetadataRepository());
 
-  final List<int> bytes = new File(input).readAsBytesSync();
-  new BinaryBuilderWithMetadata(bytes).readComponent(component);
+  final List<int> bytes = File(input).readAsBytesSync();
+  BinaryBuilderWithMetadata(bytes).readComponent(component);
 
   writeComponentToText(component, path: output, showMetadata: true);
 }

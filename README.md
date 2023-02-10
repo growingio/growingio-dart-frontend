@@ -34,8 +34,7 @@ flutter clean
 
 ### 声明注解
 固定文件名为 `growingio_inject_annotation.dart`. 
-注解一为 @Inject，注入到对象方法中，参数为importUri，clsName，methodName；可选为isRegex，isStatic，isAfter。
-注解二为 @SuperInject,注入到其指定类的子类中，参数与 @Inject 一致。
+注解为 @Inject，注入到对象方法中，参数为importUri，clsName，methodName；可选为isRegex，isStatic，isAfter，injectType。
 
 ### 注解插入
 固定文件名为 `growingio_inject_impl.dart`.
@@ -93,10 +92,10 @@ abstract class FlutterProgramTransformer {
   static List<FlutterProgramTransformer> get flutterProgramTransformers => _flutterProgramTransformers;
 
 	if (_flutterProgramTransformers.length > 0) {
-	int flutterProgramTransformersLen = _flutterProgramTransformers.length;
-	for (int i=0; i<flutterProgramTransformersLen; i++) {
-	_flutterProgramTransformers[i].transform(component);
-	}
+    for (int i = 0; i < _flutterProgramTransformers.length; i++) {
+      _flutterProgramTransformers[i].transform(component);
+    }
+  }
     
 ```
 
@@ -117,17 +116,16 @@ dart --deterministic --no-sound-null-safety --snapshot=frontend_server.dart.snap
 ```dart
 const String _locationFieldName = r'_gio_location';
 
-
-  if (importUri.path.contains('growingio_autotracker.dart')) {
-    for (Class class_ in library.classes) {
-      if (class_.name == '_GIOHasCreationLocation') {
-        _hasCreationLocationClass = class_;
-        foundHasCreationLocationClass = true;
-      } else if (class_.name == '_GIOLocation') {
-        _locationClass = class_;
-        foundLocationClass = true;
-      }
+if (importUri.path.contains('growingio_local_element.dart')) {
+  for (Class class_ in library.classes) {
+    if (class_.name == '_CustomHasCreationLocation') {
+      _hasCreationLocationClass = class_;
+      foundHasCreationLocationClass = true;
+    } else if (class_.name == '_CustomLocation') {
+      _locationClass = class_;
+      foundLocationClass = true;
     }
   }
+}
 ```
-Inspecttor_service 位置：https://github.com/flutter/devtools/blob/master/packages/devtools_app/lib/src/screens/inspector/inspector_service.dart
+Inspector_service 位置：https://github.com/flutter/devtools/blob/d2d6b5b7f4b92972aff3cab320c206d00bcdd6a9/packages/devtools_app/lib/src/shared/diagnostics/inspector_service.dart

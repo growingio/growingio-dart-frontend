@@ -1,10 +1,21 @@
+///  GrowingAnalytics
+///  @author cpacm 2022/12/12
+///  Copyright (C) 2023 Beijing Yishu Technology Co., Ltd.
+///
+///  Licensed under the Apache License, Version 2.0 (the "License");
+///  you may not use this file except in compliance with the License.
+///  You may obtain a copy of the License at
+///
+///      http://www.apache.org/licenses/LICENSE-2.0
+///
+///  Unless required by applicable law or agreed to in writing, software
+///  distributed under the License is distributed on an "AS IS" BASIS,
+///  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+///  See the License for the specific language governing permissions and
+///  limitations under the License.
+
 import 'dart:developer';
 import 'package:kernel/ast.dart';
-
-/// <p>
-///
-/// @author cpacm 2022/12/12
-
 
 class AopUtils {
   AopUtils();
@@ -22,9 +33,9 @@ class AopUtils {
   static String kAopAnnotationMethodPrefix = 'gio_stub_';
   static int kAopAnnotationMethodIndex = 0;
 
-  static const String GROWINGIO_INJECT_IMPL =
+  static const String kAopGrowingInjectImpl =
       r'^package:[a-zA-Z_]*/growingio_inject_impl.dart$';
-  static const String GROWINGIO_INJECT_ANNOTATION =
+  static const String kAopGrowingInjectAnnotation =
       r'^package:[a-zA-Z_]*/growingio_inject_annotation.dart$';
   static Set<Procedure> manipulatedProcedureSet = {};
 
@@ -35,7 +46,7 @@ class AopUtils {
   }
 
   static bool getAopModeByNameAndImportUri(String name, String importUri) {
-    if (RegExp(AopUtils.GROWINGIO_INJECT_ANNOTATION).hasMatch(importUri)) {
+    if (RegExp(AopUtils.kAopGrowingInjectAnnotation).hasMatch(importUri)) {
       if (name == kAopAnnotationClassInject) {
         return true;
       }
