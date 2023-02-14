@@ -84,10 +84,7 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
   Future<Null> compileExpression(
       String expression,
       List<String> definitions,
-      List<String> definitionTypes,
       List<String> typeDefinitions,
-      List<String> typeBounds,
-      List<String> typeDefaults,
       String libraryUri,
       String? klass,
       String? method,
@@ -95,10 +92,7 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
     return _compiler.compileExpression(
         expression,
         definitions,
-        definitionTypes,
         typeDefinitions,
-        typeBounds,
-        typeDefaults,
         libraryUri,
         klass,
         method,
