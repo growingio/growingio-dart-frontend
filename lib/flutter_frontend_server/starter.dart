@@ -10,7 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 
 import 'package:frontend_server/frontend_server.dart';
-import 'package:frontend_server/src/binary_protocol.dart';
+// import 'package:frontend_server/src/binary_protocol.dart';
 
 import 'flutter_frontend_compiler.dart';
 
@@ -79,11 +79,11 @@ Future<int> starter(
     }
   }
 
-  final binaryProtocolAddressStr = options['binary-protocol-address'];
-  if (binaryProtocolAddressStr is String) {
-    runBinaryProtocol(binaryProtocolAddressStr);
-    return 0;
-  }
+  // final binaryProtocolAddressStr = options['binary-protocol-address'];
+  // if (binaryProtocolAddressStr is String) {
+  //   runBinaryProtocol(binaryProtocolAddressStr);
+  //   return 0;
+  // }
 
   compiler ??= FlutterFrontendCompiler(output,
       printerFactory: binaryPrinterFactory,
