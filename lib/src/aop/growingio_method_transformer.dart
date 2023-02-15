@@ -181,7 +181,7 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
 
     procedure.fileOffset = referProcedure.fileOffset;
     procedure.fileEndOffset = referProcedure.fileEndOffset;
-    procedure.fileStartOffset = referProcedure.fileStartOffset;
+    // procedure.fileStartOffset = referProcedure.fileStartOffset;
     AopUtils.manipulatedProcedureSet.add(referProcedure);
     //print("GrowingIO SuperInject stubProcedure:${procedure.name.text} ${procedure.function.body}");
     return procedure;
