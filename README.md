@@ -88,23 +88,29 @@ abstract class FlutterProgramTransformer {
   void transform(Component component);
 }
 
-  static List<FlutterProgramTransformer> _flutterProgramTransformers = [];
-  static List<FlutterProgramTransformer> get flutterProgramTransformers => _flutterProgramTransformers;
+static List<FlutterProgramTransformer> _flutterProgramTransformers = [];
+static List<FlutterProgramTransformer> get flutterProgramTransformers => _flutterProgramTransformers;
 
-	if (_flutterProgramTransformers.length > 0) {
-    for (int i = 0; i < _flutterProgramTransformers.length; i++) {
-      _flutterProgramTransformers[i].transform(component);
-    }
+if (_flutterProgramTransformers.length > 0) {
+  for (int i = 0; i < _flutterProgramTransformers.length; i++) {
+    _flutterProgramTransformers[i].transform(component);
   }
-    
+}
 ```
 
 ### 创建 flutter_frontend_server
 使用自己的 flutter_frontend_server 生成 frontend_server.dart.snapshot 来替换 dart 默认的snapshot,使其具有 AOP 的能力。
 
 生成命令：首先进入 flutter_frontend_server 目录
+#### dart version < 2.19.0
+
 ```cmd
 dart --deterministic --no-sound-null-safety --snapshot=frontend_server.dart.snapshot frontend_server_starter.dart
+```
+#### dart version >= 2.19.0 (Flutter version 3.7.0)
+
+```cmd
+dart --deterministic --snapshot=frontend_server.dart.snapshot frontend_server_starter.dart
 ```
 > 在 dart 2.18.5 tag的源码中，frontend_server 还停留在 dart=2.9 (<2.12)，所以只能忽略空安全编译
 
