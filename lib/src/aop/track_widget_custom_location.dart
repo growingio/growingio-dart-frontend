@@ -547,10 +547,11 @@ class WidgetCreatorTracker {
 
     // Transform call sites to pass the location parameter.
     final _WidgetCallSiteTransformer callsiteTransformer =
-        new _WidgetCallSiteTransformer(
-            widgetClass: _widgetClass,
-            locationClass: _locationClass,
-            tracker: this);
+      _WidgetCallSiteTransformer(
+        widgetClass: _widgetClass,
+        locationClass: _locationClass,
+        tracker: this,
+        rootUrlList: _rootUrlList);
 
     for (Library library in libraries) {
       callsiteTransformer.enterLibrary(library);
