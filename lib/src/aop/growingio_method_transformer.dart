@@ -45,15 +45,16 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
 
       var functionNode = node.parent as FunctionNode;
       var newBlock = Block(<Statement>[]);
+      Arguments arguments = AopUtils.argumentsFromFunctionNode(stubProcedure.function);
 
       /// call stubProcedure
       InstanceInvocation stubInstanceInvocation = InstanceInvocation(
           InstanceAccessKind.Instance,
           ThisExpression(),
           stubProcedure.name,
-          AopUtils.argumentsFromFunctionNode(stubProcedure.function),
+          arguments,
           interfaceTarget: stubProcedure,
-          functionType: (stubProcedure.getterType) as FunctionType);
+          functionType: AopUtils.computeFunctionTypeForFunctionNode(stubProcedure.function, arguments));
 
       if (shouldReturn) {
         // final gioResult = this.gio_stub_method();
@@ -251,7 +252,7 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
             redirectConstructorInvocation, aopItemInfo.member.name, injectArgs,
             interfaceTarget: aopItemInfo.member as Procedure,
             functionType:
-                (aopItemInfo.member as Procedure).getterType as FunctionType);
+            AopUtils.computeFunctionTypeForFunctionNode((aopItemInfo.member as Procedure).function, arguments));
 
         //print("GrowingIO SuperInject expression:  " + callExpression.toString());
       }
