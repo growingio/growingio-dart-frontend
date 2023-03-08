@@ -55,13 +55,10 @@ class GrowingIOInjectTransformer extends RecursiveVisitor {
     // match class，then match method
     for (int i = 0; i < _aopItemInfoList.length && !matches; i++) {
       GrowingioAopInfo info = _aopItemInfoList[i];
-      if ((info.isRegex && RegExp(info.clsName).hasMatch(clsName)) ||
-          (!info.isRegex && info.clsName == clsName)) {
-        matches = _judgeClass(info, clsName);
-        if (matches) {
-          clazz.visitChildren(this);
-          break;
-        }
+      matches = _judgeClass(info, clsName);
+      if (matches) {
+        clazz.visitChildren(this);
+        break;
       }
     }
   }

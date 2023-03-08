@@ -34,13 +34,10 @@ class GrowingIOSuperInjectTransformer extends RecursiveVisitor {
     // match class，then match method
     for (int i = 0; i < _aopItemInfoList.length && !matches; i++) {
       GrowingioAopInfo info = _aopItemInfoList[i];
-      if ((info.isRegex && RegExp(info.clsName).hasMatch(clsName)) ||
-          (!info.isRegex && info.clsName == clsName)) {
-        matches = _judgeClass(info, clsName);
-        if (matches) {
-          clazz.visitChildren(this);
-          break;
-        }
+      matches = _judgeClass(info, clsName);
+      if (matches) {
+        clazz.visitChildren(this);
+        break;
       }
     }
   }
@@ -61,7 +58,6 @@ class GrowingIOSuperInjectTransformer extends RecursiveVisitor {
     // match method, and inject
     for (int i = 0; i < _aopItemInfoList.length; i++) {
       GrowingioAopInfo aopItemInfo = _aopItemInfoList[i];
-
       if ((aopItemInfo.isRegex &&
               RegExp(aopItemInfo.methodName).hasMatch(methodName)) ||
           (!aopItemInfo.isRegex && methodName == aopItemInfo.methodName)) {
