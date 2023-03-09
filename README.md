@@ -23,7 +23,12 @@ flutter clean
 
 ### 反编译
 可以通过反编译查看是否Hook成功。
-使用项目下的 `dump_dill.dart` ，直接run main方法即可。
+使用项目下的 `dump_dill.dart` ：
+
+```dart
+dart dump_dill.dart 
+```
+
 需要将 app.dill放在项目下，会生成out.dill.txt文件，可以查看文件中是否有注入成功。
 
 > app.dill 是flutter编译后的产物，一般位于 `/.dart_tool/flutter_build/<一串长参数>/app.dill`
@@ -135,3 +140,7 @@ if (importUri.path.contains('growingio_local_element.dart')) {
 }
 ```
 Inspector_service 位置：https://github.com/flutter/devtools/blob/d2d6b5b7f4b92972aff3cab320c206d00bcdd6a9/packages/devtools_app/lib/src/shared/diagnostics/inspector_service.dart
+
+### 如何调试
+
+见[如何调试](docs/如何调试.md)
