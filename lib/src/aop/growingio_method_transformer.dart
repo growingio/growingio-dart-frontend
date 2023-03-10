@@ -57,36 +57,29 @@ class GrowingIOSuperInjectMethodTransformer extends RecursiveVisitor {
           functionType: AopUtils.computeFunctionTypeForFunctionNode(stubProcedure.function, arguments));
 
       if (shouldReturn) {
-        // final gioResult = this.gio_stub_method();
-        final VariableDeclaration variable = VariableDeclaration("gioResult",
-            initializer: stubInstanceInvocation, isFinal: true);
-        Statement? injectStatement;
-        var generateExpression = _generateAopExpression(
-            functionNode, aopItemInfo.isAfter ? VariableGet(variable) : null);
-        bool shouldAopReturn = aopProcedure.function.returnType is! VoidType;
-        if (generateExpression != null) {
-          injectStatement = shouldAopReturn
-              ? ReturnStatement(generateExpression)
-              : ExpressionStatement(generateExpression);
-        }
-        var returnStatement = ReturnStatement(VariableGet(variable));
-
         if (aopItemInfo.isAfter) {
+          final VariableDeclaration variable = VariableDeclaration("gioResult",
+            initializer: stubInstanceInvocation, isFinal: true);
           newBlock.addStatement(variable);
-          if (injectStatement != null) {
+          bool shouldAopReturn = aopProcedure.function.returnType is! VoidType;
+          var generateExpression = _generateAopExpression(functionNode, VariableGet(variable));
+          if (generateExpression != null) {
+            var injectStatement = shouldAopReturn
+                ? ReturnStatement(generateExpression)
+                : ExpressionStatement(generateExpression);
             newBlock.addStatement(injectStatement);
-            if (!shouldAopReturn) {
-              newBlock.addStatement(returnStatement);
-            }
-          } else {
+          }
+          if (!shouldAopReturn) {
+            var returnStatement = ReturnStatement(VariableGet(variable));
             newBlock.addStatement(returnStatement);
           }
         } else {
+          var generateExpression = _generateAopExpression(functionNode, null);
           if (generateExpression != null) {
-            injectStatement = ExpressionStatement(generateExpression);
+            var injectStatement = ExpressionStatement(generateExpression);
             newBlock.addStatement(injectStatement);
           }
-          returnStatement = ReturnStatement(stubInstanceInvocation);
+          var returnStatement = ReturnStatement(stubInstanceInvocation);
           newBlock.addStatement(returnStatement);
         }
       } else {

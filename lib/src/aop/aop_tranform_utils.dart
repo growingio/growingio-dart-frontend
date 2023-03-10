@@ -209,7 +209,7 @@ class Logger {
 
   static void e(String msg, {StackTrace? stackTrace, Object? error}) {
     log(msg,
-        name: "GrowingIO TRACK: ${DateTime.now().toLocal().toString()}",
+        name: "GrowingAnalytics ${DateTime.now().toLocal().toString()}",
         error: error,
         stackTrace: stackTrace);
   }
@@ -224,7 +224,7 @@ class Logger {
   static void _debugLog(String msg, {StackTrace? stackTrace, Object? error}) {
     assert(() {
       log(msg,
-          name: "GrowingIO TRACK",
+          name: "GrowingAnalytics",
           error: error,
           stackTrace: stackTrace);
       return true;
