@@ -56,7 +56,12 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
   }
 
   @override
-  Future<Null> recompileDelta({String? entryPoint}) async {
+  Future<bool> setNativeAssets(String nativeAssets) {
+    return _compiler.setNativeAssets(nativeAssets);
+  }
+
+  @override
+  Future<void> recompileDelta({String? entryPoint}) async {
     return _compiler.recompileDelta(entryPoint: entryPoint);
   }
 
@@ -81,7 +86,7 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
   }
 
   @override
-  Future<Null> compileExpression(
+  Future<void> compileExpression(
       String expression,
       List<String> definitions,
       List<String> definitionTypes,
@@ -106,7 +111,7 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
   }
 
   @override
-  Future<Null> compileExpressionToJs(
+  Future<void> compileExpressionToJs(
       String libraryUri,
       int line,
       int column,
