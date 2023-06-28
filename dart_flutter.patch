@@ -1,0 +1,38 @@
+diff --git a/pkg/vm/lib/target/flutter.dart b/pkg/vm/lib/target/flutter.dart
+index 8bdde3d4201..8473a3fa020 100644
+--- a/pkg/vm/lib/target/flutter.dart
++++ b/pkg/vm/lib/target/flutter.dart
+@@ -9,11 +9,18 @@ import 'package:kernel/target/targets.dart';
+ import 'package:kernel/transformations/track_widget_constructor_locations.dart';
+ import 'package:vm/target/vm.dart' show VmTarget;
+ 
++abstract class FlutterProgramTransformer {
++  void transform(Component component);
++}
++
+ class FlutterTarget extends VmTarget {
+   FlutterTarget(TargetFlags flags) : super(flags);
+ 
+   late final WidgetCreatorTracker _widgetTracker = WidgetCreatorTracker();
+ 
++  static List<FlutterProgramTransformer> _flutterProgramTransformers = [];
++  static List<FlutterProgramTransformer> get flutterProgramTransformers => _flutterProgramTransformers;
++
+   @override
+   String get name => 'flutter';
+ 
+@@ -61,6 +68,14 @@ class FlutterTarget extends VmTarget {
+       DiagnosticReporter diagnosticReporter,
+       {void Function(String msg)? logger,
+       ChangedStructureNotifier? changedStructureNotifier}) {
++
++    if (_flutterProgramTransformers.length > 0) {
++      int flutterProgramTransformersLen = _flutterProgramTransformers.length;
++      for (int i=0; i<flutterProgramTransformersLen; i++) {
++        _flutterProgramTransformers[i].transform(component);
++      }
++    }
++
+     super.performPreConstantEvaluationTransformations(
+         component, coreTypes, libraries, diagnosticReporter,
+         logger: logger, changedStructureNotifier: changedStructureNotifier);
