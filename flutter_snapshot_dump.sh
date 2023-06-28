@@ -3,8 +3,8 @@
 # 用于新版本Flutter的SNAPSHOT打包命令，请先按照以下步骤设置路径：
 # 1. 设置 Flutter 源码路径: FLUTTER_SOURCE_DIR=<PATH>
 # 2. 设置 Dart 源码路径: DART_SOURCE_DIR=<PATH>
-# 3. 在当前位置使用命令行运行: ./flutter_snapshot_dump <flutter_version> <dart_version> 
-#    比如 ./flutter_snapshot_dump 3.10.5 3.0.5
+# 3. 在当前位置使用命令行运行: ./flutter_snapshot_dump.sh <flutter_version> <dart_version> 
+#    比如 ./flutter_snapshot_dump.sh 3.10.5 3.0.5
 # 4. 可以使用 git status 查看是否已经生成新的SNAPSHOT
 
 FLUTTER_SOURCE_DIR="/Users/shenliming/Program/flutter"
