@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 // Parameter name used to track where widget constructor calls were made from.
@@ -163,44 +164,22 @@ class _WidgetCallSiteTransformer extends Transformer {
   /// without re-parsing the source code.
   ConstructorInvocation _constructLocation(
     Location location, {
-    Class? clazz,
+    String? name,
   }) {
-    /// RepositoryProvider or package:flutter_bloc/src/repository_provider.dart::RepositoryProvider
-    var classReference = clazz?.name;
-    if (clazz != null && clazz.parent != null && clazz.parent is Library) {
-      var library = clazz.parent! as Library;
-      classReference = "${library.importUri}::${clazz.name}";
-    }
-
-    var parentClazz = clazz?.superclass;
-    var parentReference = parentClazz?.name;
-    if (parentClazz != null && parentClazz.parent != null && parentClazz.parent is Library) {
-      var library = parentClazz.parent! as Library;
-      parentReference = "${library.importUri}::${parentClazz.name}";
-    }
-
     /// 添加新的参数：rootUrl:可见的路径；isProject:判断widget是否是项目内容； importUri:当前库的路径；name:名称。
     final List<NamedExpression> arguments = <NamedExpression>[
-      NamedExpression('file', StringLiteral(location.file.toString())),
-      if (_currentLibrary != null)
-        NamedExpression(
-            'importUri', StringLiteral(_currentLibrary!.importUri.toString())),
-
-      /// 不需要
-      // NamedExpression('line', IntLiteral(location.line)),
-      // NamedExpression('column', IntLiteral(location.column)),
-      // NamedExpression('rootUrl',StringLiteral(_rootUrlList == null? "": (_rootUrlList!.isNotEmpty ? _rootUrlList!.join(",") : ""))),
-      NamedExpression('isProject', BoolLiteral(_isProject(location))),
-      if (clazz != null) NamedExpression('name', StringLiteral(clazz.name)),
-      if (classReference != null)
-        NamedExpression('reference', StringLiteral(classReference)),
-      if (parentReference != null)
-        NamedExpression('parentReference', StringLiteral(parentReference)),
+       NamedExpression('file',  StringLiteral(location.file.toString())),
+       NamedExpression('line',  IntLiteral(location.line)),
+       NamedExpression('column',  IntLiteral(location.column)),
+       NamedExpression('rootUrl',  StringLiteral(_rootUrlList == null ? "" : (_rootUrlList!.isNotEmpty ? _rootUrlList!.join(",") : ""))),
+       NamedExpression('isProject',  BoolLiteral(_isProject(location))),
+      if (_currentLibrary!=null) NamedExpression('importUri',  StringLiteral(_currentLibrary!.importUri.toString())),
+      if (name != null)  NamedExpression('name', StringLiteral(name))
     ];
 
-    return ConstructorInvocation(
+    return  ConstructorInvocation(
       _locationClass.constructors.first,
-      Arguments(<Expression>[], named: arguments),
+       Arguments(<Expression>[], named: arguments),
       isConst: true,
     );
   }
@@ -302,7 +281,7 @@ class _WidgetCallSiteTransformer extends Transformer {
 
     return _constructLocation(
       node.location!,
-      clazz: constructedClass,
+      name: constructedClass.name,
     );
   }
 
@@ -336,6 +315,13 @@ class WidgetCreatorTracker {
   /// available.
   late Class _hasCreationLocationClass;
   Set<String> _rootUrlList = <String>{};
+  List<String> _entryUrlList = [];
+
+  void addEntryPoint(String? url) {
+    if (url != null) {
+      _entryUrlList.add(url);
+    }
+  }
 
   String _findPubspecFile(FileSystemEntity fileOrDir) {
     if (fileOrDir is File) {
@@ -376,23 +362,33 @@ class WidgetCreatorTracker {
           }
         } else {
           /// 开始判断是否非系统控件
-          if (_rootUrlList.isEmpty && importUri.path.contains('main.dart')) {
-            if (importUri.path.split('/').length == 2) {
-              if (library.fileUri != null &&
-                  library.fileUri.toString().endsWith('/lib/main.dart')) {
-                final String fileUriString = library.fileUri.toString();
-                if (fileUriString.isNotEmpty &&
-                    !fileUriString.contains('.pub-cache') &&
-                    fileUriString.endsWith('/lib/main.dart')) {
-                  var rootUrl = fileUriString.replaceAll('/lib/main.dart', '');
-                  _rootUrlList.add(rootUrl);
+          /// 客户自己传入package名称
+          if (_entryUrlList.isNotEmpty) {
+            var toRemoveItem = "";
+            _entryUrlList.forEach((entryUrl) {
+              if (importUri.path.startsWith(entryUrl.replaceFirst("package:", ""))) {
+                File file = File.fromUri(library.fileUri);
+                var rootUrl = _findPubspecFile(file);
+                _rootUrlList.add(Uri.file(rootUrl).toString());
+                toRemoveItem = entryUrl;
+              }
+            });
+            _entryUrlList.removeWhere((element) => element == toRemoveItem);
+          } else {
+            if (_rootUrlList.isEmpty && importUri.path.contains('main.dart')) {
+              if (importUri.path.split('/').length == 2) {
+                if (library.fileUri != null && library.fileUri.toString().endsWith('/lib/main.dart')) {
+                  final String fileUriString = library.fileUri.toString();
+                  if (fileUriString.isNotEmpty && !fileUriString.contains('.pub-cache') && fileUriString.endsWith('/lib/main.dart')) {
+                    var rootUrl = fileUriString.replaceAll('/lib/main.dart', '');
+                    _rootUrlList.add(rootUrl);
+                  }
                 }
               }
             }
           }
 
-          if (importUri.path ==
-              'growingio_flutter_library/src/autotracker/growingio_local_element.dart') {
+          if (importUri.path.contains('growingio_local_element.dart')) {
             for (Class class_ in library.classes) {
               if (class_.name == '_CustomHasCreationLocation') {
                 _hasCreationLocationClass = class_;
@@ -551,11 +547,11 @@ class WidgetCreatorTracker {
 
     // Transform call sites to pass the location parameter.
     final _WidgetCallSiteTransformer callsiteTransformer =
-        _WidgetCallSiteTransformer(
-            widgetClass: _widgetClass,
-            locationClass: _locationClass,
-            tracker: this,
-            rootUrlList: _rootUrlList);
+      _WidgetCallSiteTransformer(
+        widgetClass: _widgetClass,
+        locationClass: _locationClass,
+        tracker: this,
+        rootUrlList: _rootUrlList);
 
     for (Library library in libraries) {
       callsiteTransformer.enterLibrary(library);
