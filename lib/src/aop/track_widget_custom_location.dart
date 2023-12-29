@@ -166,36 +166,30 @@ class _WidgetCallSiteTransformer extends Transformer {
     Class? clazz,
   }) {
     /// RepositoryProvider or package:flutter_bloc/src/repository_provider.dart::RepositoryProvider
-    var classReference = clazz?.name;
+    var classReference = clazz?.name ?? "";
     if (clazz != null && clazz.parent != null && clazz.parent is Library) {
       var library = clazz.parent! as Library;
       classReference = "${library.importUri}::${clazz.name}";
     }
 
-    var parentClazz = clazz?.superclass;
-    var parentReference = parentClazz?.name;
-    if (parentClazz != null && parentClazz.parent != null && parentClazz.parent is Library) {
-      var library = parentClazz.parent! as Library;
-      parentReference = "${library.importUri}::${parentClazz.name}";
-    }
+    String absoluteFilePath = location.file.toString();
+    _rootUrlList?.forEach((rootUrl) {
+      absoluteFilePath = absoluteFilePath.replaceAll(rootUrl, "");
+    });
 
     /// 添加新的参数：rootUrl:可见的路径；isProject:判断widget是否是项目内容； importUri:当前库的路径；name:名称。
     final List<NamedExpression> arguments = <NamedExpression>[
-      NamedExpression('file', StringLiteral(location.file.toString())),
+      NamedExpression('file', StringLiteral(absoluteFilePath)),
       if (_currentLibrary != null)
         NamedExpression(
             'importUri', StringLiteral(_currentLibrary!.importUri.toString())),
 
-      /// 不需要
-      // NamedExpression('line', IntLiteral(location.line)),
-      // NamedExpression('column', IntLiteral(location.column)),
-      // NamedExpression('rootUrl',StringLiteral(_rootUrlList == null? "": (_rootUrlList!.isNotEmpty ? _rootUrlList!.join(",") : ""))),
+      /// 兼容旧版本
+      NamedExpression('line', IntLiteral(location.line)),
+      NamedExpression('column', IntLiteral(location.column)),
+      NamedExpression('rootUrl', StringLiteral(classReference)),
       NamedExpression('isProject', BoolLiteral(_isProject(location))),
       if (clazz != null) NamedExpression('name', StringLiteral(clazz.name)),
-      if (classReference != null)
-        NamedExpression('reference', StringLiteral(classReference)),
-      if (parentReference != null)
-        NamedExpression('parentReference', StringLiteral(parentReference)),
     ];
 
     return ConstructorInvocation(
