@@ -96,6 +96,8 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
       String libraryUri,
       String? klass,
       String? method,
+      int offset,
+      String? scriptUri,
       bool isStatic) {
     return _compiler.compileExpression(
         expression,
@@ -107,6 +109,8 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
         libraryUri,
         klass,
         method,
+        offset,
+        scriptUri,
         isStatic);
   }
 
