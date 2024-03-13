@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'dart:async';
-import 'dart:io' show Directory, File, InternetAddress, Socket, stdin;
+import 'dart:io' show Directory, File, InternetAddress, stdin;
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -11,7 +11,6 @@ import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 
 import 'package:frontend_server/frontend_server.dart';
 import 'package:frontend_server/src/binary_protocol.dart';
-import 'package:frontend_server/src/resident_frontend_server.dart';
 
 import 'flutter_frontend_compiler.dart';
 
@@ -37,13 +36,6 @@ Future<int> starter(
     return 1;
   }
 
-  if (options['resident-info-file-name'] != null) {
-    StreamSubscription<Socket>? serverSubscription =
-        await residentListenAndCompile(InternetAddress.loopbackIPv4, 0,
-            File(options['resident-info-file-name']));
-    return serverSubscription == null ? 1 : 0;
-  }
-
   if (options['train']) {
     if (options.rest.isEmpty) {
       throw Exception('Must specify input.dart');
@@ -51,7 +43,7 @@ Future<int> starter(
 
     final String input = options.rest[0];
     final String sdkRoot = options['sdk-root'];
-    final String? platform = options['platform'];
+    //final String? platform = options['platform'];
     final Directory temp =
         Directory.systemTemp.createTempSync('train_frontend_server');
     try {
@@ -63,11 +55,11 @@ Future<int> starter(
         '--output-dill=$outputTrainingDill',
         '--target=flutter',
         '--track-widget-creation',
-        '--native-asserts',
+        '--enable-asserts',
       ];
-      if (platform != null) {
-        args.add('--platform=${Uri.file(platform)}');
-      }
+      // if (platform != null) {
+      //   args.add('--platform=${Uri.file(platform)}');
+      // }
       options = argParser.parse(args);
       // compiler ??= FrontendCompiler(output, printerFactory: binaryPrinterFactory);
       compiler ??= FlutterFrontendCompiler(output,printerFactory: binaryPrinterFactory);
@@ -99,8 +91,7 @@ Future<int> starter(
       incrementalSerialization: options["incremental-serialization"],
       useDebuggerModuleNames: options['debugger-module-names'],
       emitDebugMetadata: options['experimental-emit-debug-metadata'],
-      emitDebugSymbols: options['emit-debug-symbols'],
-      canaryFeatures: options['dartdevc-canary'],);
+      emitDebugSymbols: options['emit-debug-symbols']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,

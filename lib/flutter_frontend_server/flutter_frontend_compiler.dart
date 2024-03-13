@@ -33,20 +33,16 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
       {frontend.BinaryPrinterFactory? printerFactory,
       frontend.ProgramTransformer? transformer,
       bool? unsafePackageSerialization,
-      bool incrementalSerialization = true,
+      bool? incrementalSerialization,
       bool useDebuggerModuleNames = false,
       bool emitDebugMetadata = false,
-      bool emitDebugSymbols = false,
-      bool canaryFeatures = false,})
+      bool emitDebugSymbols = false})
       : _compiler = frontend.FrontendCompiler(outputStream,
             printerFactory: printerFactory,
             transformer: transformer,
-            unsafePackageSerialization: unsafePackageSerialization,
-            incrementalSerialization: incrementalSerialization,
             useDebuggerModuleNames: useDebuggerModuleNames,
             emitDebugMetadata: emitDebugMetadata,
-            emitDebugSymbols: emitDebugSymbols,
-            canaryFeatures: canaryFeatures);
+            unsafePackageSerialization: unsafePackageSerialization);
 
   @override
   Future<bool> compile(String filename, ArgResults options,
@@ -100,8 +96,6 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
       String libraryUri,
       String? klass,
       String? method,
-      int offset,
-      String? scriptUri,
       bool isStatic) {
     return _compiler.compileExpression(
         expression,
@@ -113,8 +107,6 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
         libraryUri,
         klass,
         method,
-        offset,
-        scriptUri,
         isStatic);
   }
 
