@@ -63,7 +63,6 @@ Future<int> starter(
         '--output-dill=$outputTrainingDill',
         '--target=flutter',
         '--track-widget-creation',
-        '--native-asserts',
       ];
       if (platform != null) {
         args.add('--platform=${Uri.file(platform)}');
