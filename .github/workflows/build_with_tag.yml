@@ -1,0 +1,89 @@
+name: Build With Tag
+
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'input dart version here(should be >= 3.3.0)'
+        required: true
+        default: '3.3.0'
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Release:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, macos-14]
+        include:
+          - os: macos-latest
+            output: darwin_x64
+          - os: windows-latest
+            output: windows_x64
+          - os: macos-14
+            output: darwin_arm64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check Inputs (macos)
+        if: matrix.os != 'windows-latest'
+        run: |
+          if [[ ${{ inputs.version }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "${{ inputs.version }} is a version number"
+          else
+            echo "${{ inputs.version }} is not a version number"
+            exit 1
+          fi
+
+      - name: Check Inputs (windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          $tag = "${{ inputs.version }}"
+          if ($tag -match '^\d+\.\d+\.\d+$') {
+            Write-Output "$tag is a version number"
+          } else {
+            Write-Output "$tag is not a version number"
+            exit 1
+          }
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GIOSDK_PAT }}
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.version }}
+
+      - name: Checkout Dart SDK
+        run: |
+          git clone --depth 1 --branch ${{ inputs.version }} https://github.com/dart-lang/sdk.git
+          cd sdk
+          git apply --ignore-space-change --ignore-whitespace "../dart_flutter.patch"
+
+      - name: Install Dependencies
+        run: |
+          dart pub get
+          mkdir build
+          mkdir build/${{ matrix.output }}
+
+      - name: Generate Snapshot
+        if: matrix.os == 'macos-latest'
+        working-directory: ./lib/flutter_frontend_server
+        run: |
+          dart --deterministic --snapshot=frontend_server.dart.snapshot frontend_server_starter.dart
+          cp frontend_server.dart.snapshot ../../build/frontend_server.dart.snapshot
+
+      - name: Generate AOT Snapshot
+        working-directory: ./lib/flutter_frontend_server
+        run: |
+          dart compile aot-snapshot frontend_server_starter.dart
+          cp frontend_server_starter.aot ../../build/${{ matrix.output }}/frontend_server_aot.dart.snapshot
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snapshots-${{ matrix.output }}
+          path: build

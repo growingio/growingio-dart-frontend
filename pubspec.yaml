@@ -31,37 +31,37 @@ dev_dependencies:
 
 dependency_overrides:
   kernel:
-    path: /Users/growingio/Desktop/sdk/pkg/kernel
+    path: ./sdk/pkg/kernel
   meta:
-    path: /Users/growingio/Desktop/sdk/pkg/meta
+    path: ./sdk/pkg/meta
   frontend_server:
-    path: /Users/growingio/Desktop/sdk/pkg/frontend_server
+    path: ./sdk/pkg/frontend_server
   front_end:
-    path: /Users/growingio/Desktop/sdk/pkg/front_end
+    path: ./sdk/pkg/front_end
   dart2js_info:
-    path: /Users/growingio/Desktop/sdk/pkg/dart2js_info
+    path: ./sdk/pkg/dart2js_info
   dev_compiler:
-    path: /Users/growingio/Desktop/sdk/pkg/dev_compiler
+    path: ./sdk/pkg/dev_compiler
   _fe_analyzer_shared:
-    path: /Users/growingio/Desktop/sdk/pkg/_fe_analyzer_shared
+    path: ./sdk/pkg/_fe_analyzer_shared
   js_shared:
-    path: /Users/growingio/Desktop/sdk/pkg/js_shared
+    path: ./sdk/pkg/js_shared
   build_integration:
-    path: /Users/growingio/Desktop/sdk/pkg/build_integration
+    path: ./sdk/pkg/build_integration
   _js_interop_checks:
-    path: /Users/growingio/Desktop/sdk/pkg/_js_interop_checks
+    path: ./sdk/pkg/_js_interop_checks
   package_config: any
   compiler:
-    path: /Users/growingio/Desktop/sdk/pkg/compiler
+    path: ./sdk/pkg/compiler
   js_runtime:
-    path: /Users/growingio/Desktop/sdk/pkg/js_runtime
+    path: ./sdk/pkg/js_runtime
   js_ast:
-    path: /Users/growingio/Desktop/sdk/pkg/js_ast
+    path: ./sdk/pkg/js_ast
   vm:
-    path: /Users/growingio/Desktop/sdk/pkg/vm
+    path: ./sdk/pkg/vm
   dart2wasm:
-    path: /Users/growingio/Desktop/sdk/pkg/dart2wasm
+    path: ./sdk/pkg/dart2wasm
   wasm_builder:
-    path: /Users/growingio/Desktop/sdk/pkg/wasm_builder
+    path: ./sdk/pkg/wasm_builder
   mmap:
-    path: /Users/growingio/Desktop/sdk/pkg/mmap
+    path: ./sdk/pkg/mmap
