@@ -33,16 +33,20 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
       {frontend.BinaryPrinterFactory? printerFactory,
       frontend.ProgramTransformer? transformer,
       bool? unsafePackageSerialization,
-      bool? incrementalSerialization,
+      bool incrementalSerialization = true,
       bool useDebuggerModuleNames = false,
       bool emitDebugMetadata = false,
-      bool emitDebugSymbols = false})
+      bool emitDebugSymbols = false,
+      bool canaryFeatures = false,})
       : _compiler = frontend.FrontendCompiler(outputStream,
             printerFactory: printerFactory,
             transformer: transformer,
+            unsafePackageSerialization: unsafePackageSerialization,
+            incrementalSerialization: incrementalSerialization,
             useDebuggerModuleNames: useDebuggerModuleNames,
             emitDebugMetadata: emitDebugMetadata,
-            unsafePackageSerialization: unsafePackageSerialization);
+            emitDebugSymbols: emitDebugSymbols,
+            canaryFeatures: canaryFeatures);
 
   @override
   Future<bool> compile(String filename, ArgResults options,
