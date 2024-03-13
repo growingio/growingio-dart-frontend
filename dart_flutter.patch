@@ -1,5 +1,5 @@
 diff --git a/pkg/vm/lib/target/flutter.dart b/pkg/vm/lib/target/flutter.dart
-index 8bdde3d4201..8473a3fa020 100644
+index 0ed541a8817..3d3994f324b 100644
 --- a/pkg/vm/lib/target/flutter.dart
 +++ b/pkg/vm/lib/target/flutter.dart
 @@ -9,11 +9,18 @@ import 'package:kernel/target/targets.dart';
@@ -21,7 +21,7 @@ index 8bdde3d4201..8473a3fa020 100644
    @override
    String get name => 'flutter';
  
-@@ -61,6 +68,14 @@ class FlutterTarget extends VmTarget {
+@@ -58,6 +65,14 @@ class FlutterTarget extends VmTarget {
        DiagnosticReporter diagnosticReporter,
        {void Function(String msg)? logger,
        ChangedStructureNotifier? changedStructureNotifier}) {
