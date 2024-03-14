@@ -33,6 +33,8 @@ checkFlutterStatus() {
 	cd -
 }
 
+version_gte() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1" || test "$1" = "$2"; }
+
 DART_FRONTEND_NAME="growingio-dart-frontend"
 DART_FRONTEND_SNAPSHOT="$DART_FRONTEND_NAME/lib/flutter_frontend_server/frontend_server.dart.snapshot"
 DART_FRONTEND_REPOSITORY="https://github.com/growingio/growingio-dart-frontend.git"
@@ -43,14 +45,23 @@ loggerD "Flutter path is $FLUTTER_PATH"
 checkFlutterStatus
 
 os=$(uname -a)
-OS_PLATFORM_DIR_NAME="darwin-x64" 
+OS_PLATFORM_DIR_NAME="darwin-x64"
+AOT_SNAPSHOT_DIR_NAME="darwin_x64"
 if [[ $os =~ 'Msys' ]] || [[ $os =~ 'msys' ]]; then
     OS_PLATFORM_DIR_NAME="windows-x64"
+    AOT_SNAPSHOT_DIR_NAME="windows_x64"
 elif [[ $os =~ 'Darwin' ]]; then 
+	if [[ $os =~ 'arm64' ]]; then 
+		AOT_SNAPSHOT_DIR_NAME="darwin_arm64"
+	else
+		AOT_SNAPSHOT_DIR_NAME="darwin_x64"
+	fi
     OS_PLATFORM_DIR_NAME="darwin-x64"
 else
     OS_PLATFORM_DIR_NAME="linux-x64"
+    AOT_SNAPSHOT_DIR_NAME="linux_x64"
 fi
+DART_FRONTEND_AOT_SNAPSHOT="$DART_FRONTEND_NAME/lib/flutter_frontend_server/$AOT_SNAPSHOT_DIR_NAME/frontend_server_aot.dart.snapshot"
 ARTIFACTS_SNAPSHOT_PATH="$FLUTTER_PATH/bin/cache/artifacts/engine/$OS_PLATFORM_DIR_NAME"
 DART_SDK_SNAPSHOT_PATH="$FLUTTER_PATH/bin/cache/dart-sdk/bin/snapshots"
 FLUTTER_VERSION=$(flutter --version | egrep -o "Flutter \d+\.\d+\.\d+")
@@ -74,11 +85,19 @@ if [ ! -e "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERS
   mv "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server.dart.snapshot" "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERSION"
 fi
 cp "./$DART_FRONTEND_SNAPSHOT"  $ARTIFACTS_SNAPSHOT_PATH
-if [[ $FLUTTER_VERSION = "3.0.0" || $FLUTTER_VERSION > '3.0.0' ]]; then
+if version_gte "$FLUTTER_VERSION" "3.0.0"; then
 	if [ ! -e "${DART_SDK_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERSION" ]; then
 	  mv "${DART_SDK_SNAPSHOT_PATH}/frontend_server.dart.snapshot" "${DART_SDK_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERSION"
 	fi
 	cp "./$DART_FRONTEND_SNAPSHOT"  $DART_SDK_SNAPSHOT_PATH
+
+	if version_gte "$FLUTTER_VERSION" "3.19.0"; then
+		loggerD "Replace frontend_server_aot.dart.snapshot"
+	    if [ ! -e "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION" ]; then
+		  mv "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot" "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION"
+		fi
+		cp "./$DART_FRONTEND_AOT_SNAPSHOT"  $DART_SDK_SNAPSHOT_PATH
+	fi
 fi
 loggerD "Replace success!"
 
