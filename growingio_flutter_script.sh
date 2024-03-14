@@ -73,7 +73,7 @@ flutter doctor
 rm -rf $DART_FRONTEND_NAME
 
 loggerD "Clone growingio dart frontend repository"
-git clone -b $FLUTTER_VERSION $DART_FRONTEND_REPOSITORY
+git clone --depth 1 -b $FLUTTER_VERSION $DART_FRONTEND_REPOSITORY
 
 if [ ! -f "./$DART_FRONTEND_SNAPSHOT" ]; then
 	loggerE "git clone error，check network connection please"
