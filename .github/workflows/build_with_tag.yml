@@ -80,8 +80,10 @@ jobs:
       - name: Generate AOT Snapshot
         working-directory: ./lib/flutter_frontend_server
         run: |
-          dart compile aot-snapshot frontend_server_starter.dart
-          cp frontend_server_starter.aot ../../build/${{ matrix.output }}/frontend_server_aot.dart.snapshot
+          dart compile aot-snapshot \
+          --output=frontend_server_aot.dart.snapshot \
+          frontend_server_starter.dart
+          cp frontend_server_aot.dart.snapshot ../../build/${{ matrix.output }}/frontend_server_aot.dart.snapshot
 
       - uses: actions/upload-artifact@v4
         with:
