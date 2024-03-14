@@ -8,11 +8,13 @@ Growingio Dart Frontend AOP Project
 ### 下载AOP文件
 请根据自己项目的flutter版本下载对应tag的 `frontend_server.dart.snapshot`.
 比如说 flutter 3.3.9版本，需要下载 tag 3.3.9 下的 `frontend_server.dart.snapshot` 文件。
+flutter 3.19.0起，还需下载`frontend_server_aot.dart.snapshot`文件。
 
 ### 覆盖源文件
 需要在 flutter sdk下进行替换，位置分别为：
-1. flutter/bin/cache/artifacts/engine/darwin-x64/frontend_server.dart.snapshot （macos）
+1. flutter/bin/cache/artifacts/engine/darwin-x64/frontend_server.dart.snapshot (macos)
 2. flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot
+3. flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot (flutter version >=3.19.0)
 
 ### 清除缓存
 覆盖 `frontend_server.dart.snapshot` 后需要清理缓存
@@ -119,8 +121,22 @@ dart --deterministic --snapshot=frontend_server.dart.snapshot frontend_server_st
 ```
 > 在 dart 2.18.5 tag的源码中，frontend_server 还停留在 dart=2.9 (<2.12)，所以只能忽略空安全编译
 
+### 创建 flutter_frontend_server (AOT [link 1](https://github.com/flutter/flutter/pull/136282)、[link 2](https://github.com/dart-lang/sdk/issues/53576))
+
+#### Flutter version 3.19.0
+
+```cmd
+dart compile aot-snapshot frontend_server_starter.dart
+```
+
+并将产物 frontend_server_starter.aot 手动重命名为 frontend_server_aot.dart.snapshot
+
+> 注意：在当前架构 (darwin_arm64/darwin_x64/windows_x64) 运行该命令生成的产物只能在同一架构使用，因此需要对不同的架构分别进行打包，推荐使用 Github Actions 进行多环境打包而不是本地环境打包
+>
+> https://github.com/dart-lang/sdk/issues/28617
 
 ### Widget路径修改
+
 修改组件的路径，参考 widget inspect transform。
 源码位置：https://github.com/dart-lang/sdk/blob/main/pkg/kernel/lib/transformations/track_widget_constructor_locations.dart
 修改的几个重要关键词：
