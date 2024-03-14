@@ -22,6 +22,13 @@ if ! [[ "$flutter_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+version_gte() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1" || test "$1" = "$2"; }
+
+if version_gte "$flutter_version" "3.19.0"; then
+    echo "WARNING: This script is deprecated as of version 3.19.0."
+    echo "Please use GitHub Actions for packaging starting from version 3.19.0."
+    exit 1
+fi
 
 echo "[flutter_snapshot_dump] start checkout flutter tag in $flutter_version"
 cd "$FLUTTER_SOURCE_DIR"
