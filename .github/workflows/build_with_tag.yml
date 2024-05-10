@@ -17,9 +17,9 @@ jobs:
   Release:
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, macos-14]
+        os: [macos-12, windows-latest, macos-14]
         include:
-          - os: macos-latest
+          - os: macos-12
             output: darwin_x64
           - os: windows-latest
             output: windows_x64
@@ -71,7 +71,7 @@ jobs:
           mkdir build/${{ matrix.output }}
 
       - name: Generate Snapshot
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-12'
         working-directory: ./lib/flutter_frontend_server
         run: |
           dart --deterministic --snapshot=frontend_server.dart.snapshot frontend_server_starter.dart
