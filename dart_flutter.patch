@@ -10,9 +10,9 @@ index 71489b9aa98..f776aa3c438 100644
 +        _omittedTypes![omittedType] = name;
        });
      }
-
+ 
 diff --git a/pkg/vm/lib/modular/target/flutter.dart b/pkg/vm/lib/modular/target/flutter.dart
-index 3a797cac..4010ce9d 100644
+index 3a797cac3a9..8fc813e69dc 100644
 --- a/pkg/vm/lib/modular/target/flutter.dart
 +++ b/pkg/vm/lib/modular/target/flutter.dart
 @@ -9,11 +9,18 @@ import 'package:kernel/target/targets.dart';
