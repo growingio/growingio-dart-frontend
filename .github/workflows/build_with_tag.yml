@@ -62,7 +62,7 @@ jobs:
         run: |
           git clone --depth 1 --branch ${{ inputs.version }} https://github.com/dart-lang/sdk.git
           cd sdk
-          git apply --ignore-space-change --ignore-whitespace "../dart_flutter.patch"
+          git apply --ignore-space-change --ignore-whitespace "../dart_flutter.patch" "../dart_syntax_bug.patch"
 
       - name: Install Dependencies
         run: |
