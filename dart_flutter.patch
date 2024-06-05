@@ -1,10 +1,10 @@
-diff --git a/pkg/vm/lib/target/flutter.dart b/pkg/vm/lib/target/flutter.dart
-index 0ed541a8817..3d3994f324b 100644
---- a/pkg/vm/lib/target/flutter.dart
-+++ b/pkg/vm/lib/target/flutter.dart
+diff --git a/pkg/vm/lib/modular/target/flutter.dart b/pkg/vm/lib/modular/target/flutter.dart
+index 3a797cac..4010ce9d 100644
+--- a/pkg/vm/lib/modular/target/flutter.dart
++++ b/pkg/vm/lib/modular/target/flutter.dart
 @@ -9,11 +9,18 @@ import 'package:kernel/target/targets.dart';
  import 'package:kernel/transformations/track_widget_constructor_locations.dart';
- import 'package:vm/target/vm.dart' show VmTarget;
+ import 'package:vm/modular/target/vm.dart' show VmTarget;
  
 +abstract class FlutterProgramTransformer {
 +  void transform(Component component);
