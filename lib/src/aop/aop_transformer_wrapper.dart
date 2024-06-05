@@ -15,7 +15,7 @@
 ///  limitations under the License.
 
 import 'package:kernel/ast.dart';
-import 'package:vm/target/flutter.dart';
+import 'package:vm/modular/target/flutter.dart';
 
 import 'package:growingio_aspectd_frontend/src/aop/growingio_inject_transformer.dart';
 import 'package:growingio_aspectd_frontend/src/aop/growingio_super_inject_transformer.dart';

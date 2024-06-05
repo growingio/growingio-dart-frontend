@@ -19,7 +19,7 @@ import 'package:frontend_server/frontend_server.dart' as frontend
 import 'package:kernel/ast.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/incremental_compiler.dart';
-import 'package:vm/target/flutter.dart';
+import 'package:vm/modular/target/flutter.dart';
 
 import '../src/aop/aop_transformer_wrapper.dart';
 
@@ -121,13 +121,14 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
   @override
   Future<void> compileExpressionToJs(
       String libraryUri,
+      String? scriptUri,
       int line,
       int column,
       Map<String, String> jsModules,
       Map<String, String> jsFrameValues,
       String moduleName,
       String expression) {
-    return _compiler.compileExpressionToJs(libraryUri, line, column, jsModules,
+    return _compiler.compileExpressionToJs(libraryUri, scriptUri, line, column, jsModules,
         jsFrameValues, moduleName, expression);
   }
 
