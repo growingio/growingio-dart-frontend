@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'dart:async';
-import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
 
@@ -12,12 +11,7 @@ import 'package:frontend_server/frontend_server.dart' as frontend
         BinaryPrinterFactory,
         FrontendCompiler,
         CompilerInterface,
-        listenAndCompile,
-        argParser,
-        usage,
         ProgramTransformer;
-import 'package:kernel/ast.dart';
-import 'package:path/path.dart' as path;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/modular/target/flutter.dart';
 
@@ -57,6 +51,14 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
     }
 
     return _compiler.compile(filename, options, generator: generator);
+  }
+
+  @override
+  Future<bool> compileNativeAssetsOnly(
+    ArgResults options, {
+    IncrementalCompiler? generator,
+  }) async {
+    return _compiler.compileNativeAssetsOnly(options, generator: generator);
   }
 
   @override
