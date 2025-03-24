@@ -29,7 +29,7 @@ class AopUtils {
   static String kAopAnnotationIsRegex = 'isRegex';
   static String kAopAnnotationIsStatic = 'isStatic';
   static String kAopAnnotationIsAfter = 'isAfter';
-  static String kAopAnnotationInjectType= 'injectType';
+  static String kAopAnnotationInjectType = 'injectType';
   static String kAopAnnotationMethodPrefix = 'gio_stub_';
   static int kAopAnnotationMethodIndex = 0;
 
@@ -41,7 +41,7 @@ class AopUtils {
 
   static Class? pointCutProceedClass;
 
-  static String getOnlyStubMethodName(String methodName){
+  static String getOnlyStubMethodName(String methodName) {
     return '$kAopAnnotationMethodPrefix$methodName';
   }
 
@@ -99,7 +99,7 @@ class AopUtils {
         positionDartType,
         deepCopyASTNode(functionNode.returnType,
             isReturnType: true, ignoreGenerics: true),
-        Nullability.legacy,
+        Nullability.nullable,
         namedParameters: namedDartType,
         typeParameters: [],
         requiredParameterCount: functionNode.requiredParameterCount);
@@ -184,13 +184,13 @@ class AopUtils {
       return FunctionType(
           deepCopyASTNodes(node.positionalParameters),
           deepCopyASTNode(node.returnType, isReturnType: true),
-          Nullability.legacy,
+          node.declaredNullability,
           namedParameters: deepCopyASTNodes(node.namedParameters),
           typeParameters: deepCopyASTNodes(node.typeParameters),
           requiredParameterCount: node.requiredParameterCount);
     }
     if (node is TypedefType) {
-      return TypedefType(node.typedefNode, Nullability.legacy,
+      return TypedefType(node.typedefNode, node.declaredNullability,
           deepCopyASTNodes(node.typeArguments, ignoreGeneric: ignoreGenerics));
     }
 
@@ -223,10 +223,7 @@ class Logger {
 
   static void _debugLog(String msg, {StackTrace? stackTrace, Object? error}) {
     assert(() {
-      log(msg,
-          name: "GrowingAnalytics",
-          error: error,
-          stackTrace: stackTrace);
+      log(msg, name: "GrowingAnalytics", error: error, stackTrace: stackTrace);
       return true;
     }());
   }
