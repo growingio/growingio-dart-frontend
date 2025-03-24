@@ -23,16 +23,17 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
 
   final AopWrapperTransformer aspectdAopTransformer = AopWrapperTransformer();
 
-  FlutterFrontendCompiler(StringSink? outputStream,
-      {frontend.BinaryPrinterFactory? printerFactory,
-      frontend.ProgramTransformer? transformer,
-      bool? unsafePackageSerialization,
-      bool incrementalSerialization = true,
-      bool useDebuggerModuleNames = false,
-      bool emitDebugMetadata = false,
-      bool emitDebugSymbols = false,
-      bool canaryFeatures = false,})
-      : _compiler = frontend.FrontendCompiler(outputStream,
+  FlutterFrontendCompiler(
+    StringSink? outputStream, {
+    frontend.BinaryPrinterFactory? printerFactory,
+    frontend.ProgramTransformer? transformer,
+    bool? unsafePackageSerialization,
+    bool incrementalSerialization = true,
+    bool useDebuggerModuleNames = false,
+    bool emitDebugMetadata = false,
+    bool emitDebugSymbols = false,
+    bool canaryFeatures = false,
+  }) : _compiler = frontend.FrontendCompiler(outputStream,
             printerFactory: printerFactory,
             transformer: transformer,
             unsafePackageSerialization: unsafePackageSerialization,
@@ -128,10 +129,9 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
       int column,
       Map<String, String> jsModules,
       Map<String, String> jsFrameValues,
-      String moduleName,
       String expression) {
-    return _compiler.compileExpressionToJs(libraryUri, scriptUri, line, column, jsModules,
-        jsFrameValues, moduleName, expression);
+    return _compiler.compileExpressionToJs(libraryUri, scriptUri, line, column,
+        jsModules, jsFrameValues, expression);
   }
 
   @override

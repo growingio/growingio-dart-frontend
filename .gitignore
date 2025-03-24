@@ -12,3 +12,9 @@ out.dill.txt
 pubspec.lock
 /growingio-dart-frontend.iml
 .idea/
+
+# dart sdk
+sdk
+
+# vscode plugins
+.history
