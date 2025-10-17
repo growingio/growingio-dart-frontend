@@ -17,13 +17,13 @@ jobs:
   Release:
     strategy:
       matrix:
-        os: [macos-12, windows-latest, macos-14]
+        os: [macos-15-large, windows-latest, macos-15]
         include:
-          - os: macos-12
+          - os: macos-15-large
             output: darwin_x64
           - os: windows-latest
             output: windows_x64
-          - os: macos-14
+          - os: macos-15
             output: darwin_arm64
     runs-on: ${{ matrix.os }}
 
@@ -60,9 +60,8 @@ jobs:
 
       - name: Checkout Dart SDK
         run: |
-          git clone https://github.com/dart-lang/sdk.git
+          git clone --depth 1 --branch refs/tags/${{ inputs.version }} https://github.com/dart-lang/sdk.git
           cd sdk
-          git checkout ${{ inputs.version }}
           git apply --ignore-space-change --ignore-whitespace "../dart_flutter.patch" "../dart_syntax_bug.patch"
 
       - name: Install Dependencies
@@ -72,7 +71,7 @@ jobs:
           mkdir build/${{ matrix.output }}
 
       - name: Generate Snapshot
-        if: matrix.os == 'macos-12'
+        if: matrix.os == 'macos-15-large'
         working-directory: ./lib/flutter_frontend_server
         run: |
           dart --deterministic --snapshot=frontend_server.dart.snapshot frontend_server_starter.dart
