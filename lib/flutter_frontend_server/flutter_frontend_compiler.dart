@@ -68,8 +68,8 @@ class FlutterFrontendCompiler implements frontend.CompilerInterface {
   }
 
   @override
-  Future<void> recompileDelta({String? entryPoint}) async {
-    return _compiler.recompileDelta(entryPoint: entryPoint);
+  Future<void> recompileDelta({String? entryPoint, bool recompileRestart = false}) async {
+    return _compiler.recompileDelta(entryPoint: entryPoint, recompileRestart: recompileRestart);
   }
 
   @override
