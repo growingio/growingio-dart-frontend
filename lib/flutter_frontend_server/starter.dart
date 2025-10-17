@@ -10,7 +10,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 
 import 'package:frontend_server/frontend_server.dart';
-import 'package:frontend_server/src/binary_protocol.dart';
 import 'package:frontend_server/src/resident_frontend_server.dart';
 
 import 'flutter_frontend_compiler.dart';
@@ -68,8 +67,8 @@ Future<int> starter(
         args.add('--platform=${Uri.file(platform)}');
       }
       options = argParser.parse(args);
-      // compiler ??= FrontendCompiler(output, printerFactory: binaryPrinterFactory);
-      compiler ??= FlutterFrontendCompiler(output,printerFactory: binaryPrinterFactory);
+      compiler ??= 
+          new FlutterFrontendCompiler(output,printerFactory: binaryPrinterFactory);
 
       await compiler.compile(input, options, generator: generator);
       compiler.acceptLastDelta();
@@ -86,20 +85,24 @@ Future<int> starter(
     }
   }
 
-  final binaryProtocolAddressStr = options['binary-protocol-address'];
-  if (binaryProtocolAddressStr is String) {
-    runBinaryProtocol(binaryProtocolAddressStr);
-    return 0;
-  }
+  compiler ??= FlutterFrontendCompiler(
+    output,
+    printerFactory: binaryPrinterFactory,
+    unsafePackageSerialization: options["unsafe-package-serialization"],
+    incrementalSerialization: options["incremental-serialization"],
+    useDebuggerModuleNames: options['debugger-module-names'],
+    emitDebugMetadata: options['experimental-emit-debug-metadata'],
+    emitDebugSymbols: options['emit-debug-symbols'],
+    canaryFeatures: options['dartdevc-canary'],
+  );
 
-  compiler ??= FlutterFrontendCompiler(output,
-      printerFactory: binaryPrinterFactory,
-      unsafePackageSerialization: options["unsafe-package-serialization"],
-      incrementalSerialization: options["incremental-serialization"],
-      useDebuggerModuleNames: options['debugger-module-names'],
-      emitDebugMetadata: options['experimental-emit-debug-metadata'],
-      emitDebugSymbols: options['emit-debug-symbols'],
-      canaryFeatures: options['dartdevc-canary'],);
+  if (options['native-assets-only']) {
+    final bool compileResult = await compiler.compileNativeAssetsOnly(
+      options,
+      generator: generator,
+    );
+    return compileResult ? 0 : 254;
+  }
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,
@@ -108,9 +111,12 @@ Future<int> starter(
         : 254;
   }
 
-  Completer<int> completer = Completer<int>();
-  var subscription = listenAndCompile(
+  Completer<int> completer = new Completer<int>();
+  StreamSubscription<String> subscription = listenAndCompile(
       compiler, input ?? stdin, options, completer,
       generator: generator);
-  return completer.future..then((value) => subscription.cancel());
+  return completer.future.then((value) {
+    subscription.cancel();
+    return value;
+  });
 }
