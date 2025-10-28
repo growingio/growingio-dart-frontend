@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'input dart version here(should be >= 3.3.0)'
+        description: 'input dart version here(should be >= 3.5.0)'
         required: true
-        default: '3.3.0'
+        default: '3.5.0'
         type: string
 
 concurrency:
@@ -17,10 +17,8 @@ jobs:
   Release:
     strategy:
       matrix:
-        os: [macos-15-large, windows-latest, macos-15]
+        os: [windows-latest, macos-15]
         include:
-          - os: macos-15-large
-            output: darwin_x64
           - os: windows-latest
             output: windows_x64
           - os: macos-15
@@ -68,14 +66,7 @@ jobs:
         run: |
           dart pub get
           mkdir build
-          mkdir build/${{ matrix.output }}
-
-      - name: Generate Snapshot
-        if: matrix.os == 'macos-15-large'
-        working-directory: ./lib/flutter_frontend_server
-        run: |
-          dart --deterministic --snapshot=frontend_server.dart.snapshot frontend_server_starter.dart
-          cp frontend_server.dart.snapshot ../../build/frontend_server.dart.snapshot
+          mkdir build/${{ matrix.output }
 
       - name: Generate AOT Snapshot
         working-directory: ./lib/flutter_frontend_server
