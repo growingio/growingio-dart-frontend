@@ -99,7 +99,7 @@ class AopUtils {
         positionDartType,
         deepCopyASTNode(functionNode.returnType,
             isReturnType: true, ignoreGenerics: true),
-        Nullability.legacy,
+        Nullability.nullable,
         namedParameters: namedDartType,
         typeParameters: [],
         requiredParameterCount: functionNode.requiredParameterCount);
@@ -184,13 +184,13 @@ class AopUtils {
       return FunctionType(
           deepCopyASTNodes(node.positionalParameters),
           deepCopyASTNode(node.returnType, isReturnType: true),
-          Nullability.legacy,
+          node.declaredNullability,
           namedParameters: deepCopyASTNodes(node.namedParameters),
           typeParameters: deepCopyASTNodes(node.typeParameters),
           requiredParameterCount: node.requiredParameterCount);
     }
     if (node is TypedefType) {
-      return TypedefType(node.typedefNode, Nullability.legacy,
+      return TypedefType(node.typedefNode, node.declaredNullability,
           deepCopyASTNodes(node.typeArguments, ignoreGeneric: ignoreGenerics));
     }
 
