@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'input dart version here(should be >= 3.3.0)'
+        description: 'input dart version here(should be >= 3.5.0)'
         required: true
-        default: '3.3.0'
+        default: '3.5.0'
         type: string
 
 concurrency:
@@ -17,13 +17,11 @@ jobs:
   Release:
     strategy:
       matrix:
-        os: [macos-12, windows-latest, macos-14]
+        os: [windows-latest, macos-15]
         include:
-          - os: macos-12
-            output: darwin_x64
           - os: windows-latest
             output: windows_x64
-          - os: macos-14
+          - os: macos-15
             output: darwin_arm64
     runs-on: ${{ matrix.os }}
 
@@ -62,20 +60,13 @@ jobs:
         run: |
           git clone --depth 1 --branch ${{ inputs.version }} https://github.com/dart-lang/sdk.git
           cd sdk
-          git apply --ignore-space-change --ignore-whitespace "../dart_flutter.patch" "../dart_syntax_bug.patch"
+          git apply --ignore-space-change --ignore-whitespace "../dart_flutter.patch"
 
       - name: Install Dependencies
         run: |
           dart pub get
           mkdir build
           mkdir build/${{ matrix.output }}
-
-      - name: Generate Snapshot
-        if: matrix.os == 'macos-12'
-        working-directory: ./lib/flutter_frontend_server
-        run: |
-          dart --deterministic --snapshot=frontend_server.dart.snapshot frontend_server_starter.dart
-          cp frontend_server.dart.snapshot ../../build/frontend_server.dart.snapshot
 
       - name: Generate AOT Snapshot
         working-directory: ./lib/flutter_frontend_server

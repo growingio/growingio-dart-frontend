@@ -36,7 +36,6 @@ checkFlutterStatus() {
 version_gte() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1" || test "$1" = "$2"; }
 
 DART_FRONTEND_NAME="growingio-dart-frontend"
-DART_FRONTEND_SNAPSHOT="$DART_FRONTEND_NAME/lib/flutter_frontend_server/frontend_server.dart.snapshot"
 DART_FRONTEND_REPOSITORY="https://github.com/growingio/growingio-dart-frontend.git"
 FLUTTER_PATH=$(which flutter)
 FLUTTER_PATH=${FLUTTER_PATH#flutter is }
@@ -46,18 +45,25 @@ checkFlutterStatus
 
 os=$(uname -a)
 OS_PLATFORM_DIR_NAME="darwin-x64"
-AOT_SNAPSHOT_DIR_NAME="darwin_x64"
+AOT_SNAPSHOT_DIR_NAME="darwin_arm64"
 if [[ $os =~ 'Msys' ]] || [[ $os =~ 'msys' ]]; then
     OS_PLATFORM_DIR_NAME="windows-x64"
     AOT_SNAPSHOT_DIR_NAME="windows_x64"
 elif [[ $os =~ 'Darwin' ]]; then 
-	if [[ $os =~ 'arm64' ]]; then 
+	# ------------------
+	# darwin_x64 aot snapshot 由于环境问题不再生成，macOS 统一认为是 darwin_arm64
+	# ------------------
+
+	# if [[ $os =~ 'arm64' ]]; then 
 		AOT_SNAPSHOT_DIR_NAME="darwin_arm64"
-	else
-		AOT_SNAPSHOT_DIR_NAME="darwin_x64"
-	fi
+	# else
+	# 	AOT_SNAPSHOT_DIR_NAME="darwin_x64"
+	# fi
     OS_PLATFORM_DIR_NAME="darwin-x64"
 else
+	# ------------------
+	# 对应的 snapshot 未生成，但保留这部分逻辑
+	# ------------------
     OS_PLATFORM_DIR_NAME="linux-x64"
     AOT_SNAPSHOT_DIR_NAME="linux_x64"
 fi
@@ -75,30 +81,27 @@ rm -rf $DART_FRONTEND_NAME
 loggerD "Clone growingio dart frontend repository"
 git clone --depth 1 -b $FLUTTER_VERSION $DART_FRONTEND_REPOSITORY
 
-if [ ! -f "./$DART_FRONTEND_SNAPSHOT" ]; then
+if [ ! -f "./$DART_FRONTEND_AOT_SNAPSHOT" ]; then
 	loggerE "git clone error，check network connection please"
 	exit 1
 fi
 
-loggerD "Replace frontend_server.dart.snapshot"
-if [ ! -e "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERSION" ]; then
-  mv "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server.dart.snapshot" "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERSION"
-fi
-cp "./$DART_FRONTEND_SNAPSHOT"  $ARTIFACTS_SNAPSHOT_PATH
-if version_gte "$FLUTTER_VERSION" "3.0.0"; then
-	if [ ! -e "${DART_SDK_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERSION" ]; then
-	  mv "${DART_SDK_SNAPSHOT_PATH}/frontend_server.dart.snapshot" "${DART_SDK_SNAPSHOT_PATH}/frontend_server.dart.snapshot$FLUTTER_VERSION"
+if version_gte "$FLUTTER_VERSION" "3.24.0"; then
+	loggerD "Replace frontend_server_aot.dart.snapshot at engine"
+	if [ ! -e "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION" ]; then
+  		mv "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot" "${ARTIFACTS_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION"
 	fi
-	cp "./$DART_FRONTEND_SNAPSHOT"  $DART_SDK_SNAPSHOT_PATH
+	cp "./$DART_FRONTEND_AOT_SNAPSHOT"  $ARTIFACTS_SNAPSHOT_PATH
+fi
 
-	if version_gte "$FLUTTER_VERSION" "3.19.0"; then
-		loggerD "Replace frontend_server_aot.dart.snapshot"
-	    if [ ! -e "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION" ]; then
-		  mv "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot" "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION"
-		fi
-		cp "./$DART_FRONTEND_AOT_SNAPSHOT"  $DART_SDK_SNAPSHOT_PATH
+if version_gte "$FLUTTER_VERSION" "3.24.0"; then
+	loggerD "Replace frontend_server_aot.dart.snapshot at dart-sdk"
+    if [ ! -e "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION" ]; then
+	  mv "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot" "${DART_SDK_SNAPSHOT_PATH}/frontend_server_aot.dart.snapshot$FLUTTER_VERSION"
 	fi
+	cp "./$DART_FRONTEND_AOT_SNAPSHOT"  $DART_SDK_SNAPSHOT_PATH
 fi
+
 loggerD "Replace success!"
 
 rm -rf $DART_FRONTEND_NAME
