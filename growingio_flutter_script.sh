@@ -49,16 +49,12 @@ AOT_SNAPSHOT_DIR_NAME="darwin_arm64"
 if [[ $os =~ 'Msys' ]] || [[ $os =~ 'msys' ]]; then
     OS_PLATFORM_DIR_NAME="windows-x64"
     AOT_SNAPSHOT_DIR_NAME="windows_x64"
-elif [[ $os =~ 'Darwin' ]]; then 
-	# ------------------
-	# darwin_x64 aot snapshot 由于环境问题不再生成，macOS 统一认为是 darwin_arm64
-	# ------------------
-
-	# if [[ $os =~ 'arm64' ]]; then 
+elif [[ $os =~ 'Darwin' ]]; then
+	if [[ $os =~ 'arm64' ]]; then
 		AOT_SNAPSHOT_DIR_NAME="darwin_arm64"
-	# else
-	# 	AOT_SNAPSHOT_DIR_NAME="darwin_x64"
-	# fi
+	else
+		AOT_SNAPSHOT_DIR_NAME="darwin_x64"
+	fi
     OS_PLATFORM_DIR_NAME="darwin-x64"
 else
 	# ------------------

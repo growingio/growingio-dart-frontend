@@ -17,12 +17,14 @@ jobs:
   Release:
     strategy:
       matrix:
-        os: [windows-latest, macos-15]
+        os: [windows-latest, macos-15, macos-15-intel]
         include:
           - os: windows-latest
             output: windows_x64
           - os: macos-15
             output: darwin_arm64
+          - os: macos-15-intel
+            output: darwin_x64
     runs-on: ${{ matrix.os }}
 
     steps:
