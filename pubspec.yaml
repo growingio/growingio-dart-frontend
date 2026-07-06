@@ -31,7 +31,7 @@ dependency_overrides:
     path: ./sdk/pkg/build_integration
   _js_interop_checks:
     path: ./sdk/pkg/_js_interop_checks
-  package_config: any
+  package_config: 2.1.0
   compiler:
     path: ./sdk/pkg/compiler
   js_runtime:
