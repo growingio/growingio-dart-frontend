@@ -35,6 +35,41 @@ dart dump_dill.dart
 
 > app.dill 是flutter编译后的产物，一般位于 `/.dart_tool/flutter_build/<一串长参数>/app.dill`
 
+## HarmonyOS（特制版 Flutter SDK）
+
+HarmonyOS 使用 [OpenHarmony 特制版 Flutter SDK](https://gitee.com/openharmony-sig/flutter_flutter)（如 3.22.1-ohos），
+其 Dart VM 由 [引擎 dart 补丁](https://gitee.com/openharmony-sig/flutter_engine) 重新构建，snapshot 版本哈希与上游不一致，
+**不能直接使用普通 tag 下的产物**，需使用对应的 ohos tag（如 `3.22.1-ohos`）。
+
+### 下载AOP文件
+请根据特制版 Flutter 版本下载对应 ohos tag 的产物：
+1. `frontend_server.dart.snapshot` (JIT)
+2. `<平台架构>/frontend_server_aot.dart.snapshot` (AOT)
+
+> 注意：flutter 3.22 起工具链实际加载的是 AOT 版 `frontend_server_aot.dart.snapshot`（由 dartaotruntime 运行），必须替换。
+> AOT 产物与构建机的平台架构绑定，ohos tag 默认只提供 darwin_arm64；其他平台请使用下方脚本自行构建。
+
+### 覆盖源文件
+需要在特制版 flutter sdk 下进行替换，位置分别为：
+1. flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot（关键）
+2. flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot
+3. flutter/bin/cache/artifacts/engine/darwin-x64/frontend_server.dart.snapshot (macos)
+
+替换后执行 `flutter clean` 清理缓存。
+
+### 制作新版本 ohos snapshot
+使用项目下的 `flutter_snapshot_dump_ohos.sh`（用法见脚本头部注释）：
+
+```cmd
+export DART_SOURCE_DIR=<dart-lang/sdk 源码路径>
+export OHOS_FLUTTER_SDK=<特制版 Flutter SDK 路径>
+./flutter_snapshot_dump_ohos.sh <flutter_version>
+```
+
+脚本流程：checkout 上游 Dart 源码 → 应用 `dart_flutter.patch`（AOP）→ 应用 gitee 引擎仓库的 ohos dart 补丁
+→ 对齐 pkg/vm 的 FFI ABI（自动补齐 ohosX64）→ 用特制版 SDK 内置的 dart 二进制构建 JIT + AOT snapshot。
+制作完成后基于对应版本 tag 创建 `release/<version>-ohos` 分支提交产物并打 `<version>-ohos` tag。
+
 ## 无埋点使用方式
 
 可以将项目中的`inject`目录下的文件加入你的项目中，这两个文件是 Dart 编译过程中实现AOP的关键文件。
