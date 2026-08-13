@@ -49,8 +49,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GIOSDK_PAT }}
 
       - uses: dart-lang/setup-dart@v1
         with:
@@ -61,6 +59,16 @@ jobs:
           git clone --depth 1 --branch ${{ inputs.version }} https://github.com/dart-lang/sdk.git
           cd sdk
           git apply --ignore-space-change --ignore-whitespace "../dart_flutter.patch"
+
+      - name: Detach SDK Packages From Pub Workspace
+        shell: bash
+        run: |
+          # sdk/pubspec.yaml 把 third_party 下的包做了 path override，
+          # 而 third_party 由 DEPS 拉取，git clone 拿不到（如 devtools_shared），
+          # 因此让需要的包脱离 workspace 单独解析。
+          find sdk/pkg sdk/third_party/pkg -maxdepth 3 -name pubspec.yaml \
+            -exec sed -i.bak '/^resolution: workspace$/d' {} +
+          find sdk -name 'pubspec.yaml.bak' -delete
 
       - name: Install Dependencies
         run: |
